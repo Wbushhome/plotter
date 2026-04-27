@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TRT Plotter v3 | Omnadren, Nebido, Prolongatum</title>
+  <title>TRT Plotter v4 | testosteron, estradiol, anastrozol</title>
   <style>
     :root{
       --bg:#eef1f6;
@@ -355,9 +355,9 @@
   <section class="hero">
     <div class="hero-grid">
       <div>
-        <h1>TRT Plotter v3</h1>
+        <h1>TRT Plotter v4</h1>
         <p class="lead">
-          Ploter stężenia testosteronu całkowitego po iniekcjach. Model został skalibrowany do danych farmakokinetycznych dla mieszaniny estrów, Nebido i testosteronu enantanu. Nadal jest to symulacja poglądowa, ale nie opiera się już na przypadkowym mnożniku.
+          Ploter stężenia testosteronu całkowitego, estradiolu oraz wpływu anastrozolu. Model testosteronu jest skalibrowany do danych farmakokinetycznych dla mieszaniny estrów, Nebido i enantanu, a moduł AI uwzględnia kumulację anastrozolu, okres półtrwania i empiryczne hamowanie estradiolu.
         </p>
       </div>
       <div class="hero-panel">
@@ -365,6 +365,8 @@
         <div class="hero-mini"><div class="a" id="heroDose">–</div><div class="b">dawka i interwał</div></div>
         <div class="hero-mini"><div class="a" id="heroPeak">–</div><div class="b">szczyt w ostatnim interwale</div></div>
         <div class="hero-mini"><div class="a" id="heroTrough">–</div><div class="b">dołek w ostatnim interwale</div></div>
+        <div class="hero-mini"><div class="a" id="heroE2">–</div><div class="b">średni E2 po AI / 30 dni</div></div>
+        <div class="hero-mini"><div class="a" id="heroAI">–</div><div class="b">średnie hamowanie AI / 30 dni</div></div>
       </div>
     </div>
   </section>
@@ -470,13 +472,49 @@
         <div class="group-head">
           <div>
             <div class="group-title">Estradiol i aromatyzacja</div>
-            <div class="group-sub">Wykres E2 jest indeksem, a nie wynikiem laboratoryjnym.</div>
+            <div class="group-sub">Wykres E2 jest indeksem, a nie wynikiem laboratoryjnym. Pokazuje E2 przed i po wpływie inhibitora.</div>
           </div>
         </div>
         <div class="fields two">
           <div class="field"><label for="e2Base">Estradiol bazowy, pg/ml</label><input id="e2Base" type="number" min="0" step="1" value="12"></div>
           <div class="field"><label for="aromRate">Współczynnik E2</label><input id="aromRate" type="number" min="0" step="0.001" value="0.025"></div>
         </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head">
+          <div>
+            <div class="group-title">Inhibitor aromatazy</div>
+            <div class="group-sub">Anastrozol: dawka, częstotliwość, kumulacja i wpływ na E2.</div>
+          </div>
+          <span class="pill">anastrozol</span>
+        </div>
+        <div class="check">
+          <input id="aiOn" type="checkbox">
+          <label for="aiOn">Uwzględnij anastrozol w symulacji E2.</label>
+        </div>
+        <div class="fields two" style="margin-top:10px">
+          <div class="field"><label for="aiDose">Dawka anastrozolu, mg</label><input id="aiDose" type="number" min="0" step="0.125" value="0.25"></div>
+          <div class="field"><label for="aiInterval">Częstotliwość, co ile dni</label><input id="aiInterval" type="number" min="0.25" step="0.25" value="3.5"></div>
+        </div>
+        <div class="fields two" style="margin-top:10px">
+          <div class="field"><label for="aiStart">Pierwsza dawka AI, dzień</label><input id="aiStart" type="number" min="0" step="0.5" value="0"></div>
+          <div class="field"><label for="aiSensitivity">Czułość E2 na AI</label><input id="aiSensitivity" type="number" min="0" max="1.5" step="0.05" value="0.55"></div>
+        </div>
+        <div class="stats-row">
+          <div class="mini"><div class="a" id="aiWeek">–</div><div class="b">mg anastrozolu / tydzień</div></div>
+          <div class="mini"><div class="a" id="aiAvgSupp">–</div><div class="b">średnie hamowanie / 30 dni</div></div>
+          <div class="mini"><div class="a" id="aiEndSupp">–</div><div class="b">hamowanie na końcu</div></div>
+        </div>
+        <details style="margin-top:10px">
+          <summary>Farmakokinetyka anastrozolu</summary>
+          <div class="hint">Domyślnie: Tmax 0,083 dnia, czyli ok. 2 godziny; t½ 2,08 dnia, czyli ok. 50 godzin; kalibracja: 1 mg raz dziennie daje silne hamowanie E2 po 14 dniach, ale w modelu męskim domyślnie stosuję korektę czułości 0,55.</div>
+          <div class="fields three" style="margin-top:10px">
+            <div class="field"><label for="aiHalf">t½ anastrozolu, dni</label><input id="aiHalf" type="number" min="0.2" step="0.05" value="2.08"></div>
+            <div class="field"><label for="aiTmax">Tmax, dni</label><input id="aiTmax" type="number" min="0" step="0.01" value="0.083"></div>
+            <div class="field"><label for="aiMaxSupp">Maks. hamowanie aromatazy, %</label><input id="aiMaxSupp" type="number" min="0" max="99" step="1" value="90"></div>
+          </div>
+        </details>
       </div>
 
       <div class="group">
@@ -508,7 +546,7 @@
             <span><i class="dot exog"></i> wkład egzogenny</span>
             <span><i class="dot nat"></i> produkcja własna</span>
             <span><i class="dot inj"></i> iniekcja</span>
-            <span><i class="dot e2"></i> indeks E2</span>
+            <span><i class="dot e2"></i> E2 po AI</span><span><i class="dot" style="background:#f97316"></i> E2 bez AI</span>
           </div>
         </div>
         <span class="pill" id="modeLabel">tryb empiryczny</span>
@@ -524,18 +562,20 @@
         <div class="metric"><div class="v" id="mCmin">–</div><div class="k">Cmin TT w ostatnim interwale</div></div>
         <div class="metric"><div class="v" id="mAvg">–</div><div class="k">Średnia TT z ostatnich 30 dni</div></div>
         <div class="metric"><div class="v" id="mNat">–</div><div class="k">Naturalny T na końcu</div></div>
-        <div class="metric"><div class="v" id="mE2">–</div><div class="k">Średni indeks E2 z 30 dni</div></div>
+        <div class="metric"><div class="v" id="mE2">–</div><div class="k">Średni E2 po AI z 30 dni</div></div>
         <div class="metric"><div class="v" id="mSwing">–</div><div class="k">Różnica szczyt/dołek</div></div>
       </div>
 
       <div class="info-box">
-        <strong>Jak czytać wykres:</strong> czarna linia to testosteron całkowity, czyli suma wkładu z leku i pozostałej produkcji własnej. Niebieska linia pokazuje sam wkład egzogenny, zielona produkcję własną po supresji, a fioletowy wykres niżej pokazuje szacunkowy indeks aromatyzacji do E2.
+        <strong>Jak czytać wykres:</strong> czarna linia to testosteron całkowity, czyli suma wkładu z leku i pozostałej produkcji własnej. Niebieska linia pokazuje sam wkład egzogenny, zielona produkcję własną po supresji. Na dolnym wykresie pomarańczowa linia pokazuje szacunkowe E2 bez inhibitora, a fioletowa E2 po uwzględnieniu anastrozolu.
       </div>
 
       <div class="ref-grid">
         <div class="ref"><strong>Omnadren / mieszanka estrów</strong>Kalibracja do profilu typu Sustanon: szczyt około 70 nmol/l po 24–48 h i powrót do dolnej granicy normy około 21 dnia po 1 ml.</div>
         <div class="ref"><strong>Nebido</strong>Kalibracja do 1000 mg: po pierwszej dawce Cmax około 38 nmol/l po 7 dniach, w stanie stacjonarnym około 37/16 nmol/l Cmax/Cmin.</div>
         <div class="ref"><strong>Enantan / Prolongatum</strong>Kalibracja do danych dla enantanu: pik w okolicy 1–3 dnia, wyraźny spadek w 1–2 tygodniu i duża zależność od interwału.</div>
+        <div class="ref"><strong>Anastrozol</strong>PK: Tmax zwykle do 2 h, t½ około 50 h, stan stacjonarny około 7 dni przy dawkowaniu codziennym.</div>
+        <div class="ref"><strong>Efekt na E2</strong>1 mg/d może obniżać E2 silnie u kobiet po menopauzie; u starszych mężczyzn 1 mg/d lub 1 mg 2x/tydz. obniżał E2 z ok. 26–27 do ok. 17 pg/ml.</div>
       </div>
     </main>
   </div>
@@ -754,10 +794,70 @@ function naturalAt(t,exog,initial){
   return initial*(1-suppressed);
 }
 
-function e2At(total,body){
+function e2RawAt(total,body){
   const base=Math.max(0,readNum("e2Base"));
   const rate=Math.max(0,readNum("aromRate"));
-  return base + Math.max(0,total)*rate*body.aromFactor;
+  const generated=Math.max(0,total)*rate*body.aromFactor;
+  return {base, generated, raw: base + generated};
+}
+
+function aiDoseDays(days){
+  if(!$("aiOn").checked) return [];
+  const start=Math.max(0,readNum("aiStart"));
+  const interval=Math.max(0.25,readNum("aiInterval"));
+  const arr=[];
+  for(let d=start; d<=days+1e-9; d+=interval) arr.push(Number(d.toFixed(4)));
+  return arr;
+}
+
+function aiExposureAt(t,doseDays,doseMg){
+  if(!$("aiOn").checked || doseMg<=0) return 0;
+  const half=Math.max(0.2,readNum("aiHalf"));
+  const tmax=Math.max(0.001,readNum("aiTmax"));
+  const riseTau=Math.max(0.01,tmax/2.2);
+  let exposure=0;
+  for(const d of doseDays){
+    if(t<d) continue;
+    const age=t-d;
+    const rise=1-Math.exp(-age/riseTau);
+    const decayAge=Math.max(0,age-tmax);
+    const decay=Math.exp(-Math.LN2*decayAge/half);
+    exposure += doseMg*rise*decay;
+  }
+  return exposure;
+}
+
+function aiReferenceExposure(){
+  const half=Math.max(0.2,readNum("aiHalf"));
+  const tmax=Math.max(0.001,readNum("aiTmax"));
+  const riseTau=Math.max(0.01,tmax/2.2);
+  let exposure=0;
+  for(let d=0; d<=14+1e-9; d+=1){
+    const age=14-d;
+    const rise=1-Math.exp(-age/riseTau);
+    const decayAge=Math.max(0,age-tmax);
+    const decay=Math.exp(-Math.LN2*decayAge/half);
+    exposure += 1*rise*decay;
+  }
+  return Math.max(0.0001,exposure);
+}
+
+function aiSuppression(exposure,refExposure){
+  if(!$("aiOn").checked) return 0;
+  const maxSupp=clamp(readNum("aiMaxSupp")/100,0,0.99);
+  const sensitivity=clamp(readNum("aiSensitivity"),0,1.5);
+  const rel=Math.max(0,exposure/refExposure);
+  // EC50 dobrane tak, aby 1 mg codziennie po 14 dniach dawało ok. 80% hamowania w modelu bazowym.
+  const ec50=Math.max(0.01,(maxSupp/0.80)-1);
+  const baseEffect=maxSupp*rel/(ec50+rel);
+  return clamp(baseEffect*sensitivity,0,0.98);
+}
+
+function e2AfterAI(total,body,t,aiDays,aiDose,refExposure){
+  const e=e2RawAt(total,body);
+  const exposure=aiExposureAt(t,aiDays,aiDose);
+  const supp=aiSuppression(exposure,refExposure);
+  return {raw:e.raw, base:e.base, generated:e.generated, final:e.base + e.generated*(1-supp), aiExposure:exposure, aiSupp:supp};
 }
 
 function simulate(){
@@ -774,14 +874,17 @@ function simulate(){
   const injections=injectionDays(days,interval,loading);
   const scale=computeScaleForPrep()*personal;
   const pts=makeSeries(days,step,dose,injections,scale,body.volumeFactor,esters);
+  const aiDays=aiDoseDays(days);
+  const aiDose=Math.max(0,readNum("aiDose"));
+  const aiRef=aiReferenceExposure();
 
   const points=pts.map(pnt=>{
     const nat=naturalAt(pnt.x,pnt.exog,naturalStart);
     const total=pnt.exog+nat;
-    const e2=e2At(total,body);
-    return {...pnt,nat,total,e2};
+    const e2=e2AfterAI(total,body,pnt.x,aiDays,aiDose,aiRef);
+    return {...pnt,nat,total,e2Raw:e2.raw,e2:e2.final,aiExposure:e2.aiExposure,aiSupp:e2.aiSupp};
   });
-  return {p,dose,interval,days,step,body,injections,scale,points,loading};
+  return {p,dose,interval,days,step,body,injections,scale,points,loading,aiDays,aiDose,aiRef};
 }
 
 function updateUI(data){
@@ -803,7 +906,9 @@ function updateUI(data){
   const cmin=Math.min(...vals);
   const avg30=last30.reduce((s,p)=>s+p.total,0)/Math.max(1,last30.length);
   const e2avg=last30.reduce((s,p)=>s+p.e2,0)/Math.max(1,last30.length);
+  const aiAvg=last30.reduce((s,p)=>s+p.aiSupp,0)/Math.max(1,last30.length);
   const natEnd=data.points[data.points.length-1]?.nat ?? 0;
+  const aiEnd=data.points[data.points.length-1]?.aiSupp ?? 0;
 
   $("mCmax").textContent=fmt(cmax,0);
   $("mCmin").textContent=fmt(cmin,0);
@@ -812,11 +917,17 @@ function updateUI(data){
   $("mE2").textContent=fmt(e2avg,1);
   $("mSwing").textContent=fmt(cmax-cmin,0);
 
+  $("aiWeek").textContent=$("aiOn").checked ? `${fmt(readNum("aiDose")*7/Math.max(0.25,readNum("aiInterval")),2)} mg` : "wył.";
+  $("aiAvgSupp").textContent=$("aiOn").checked ? `${fmt(aiAvg*100,0)}%` : "wył.";
+  $("aiEndSupp").textContent=$("aiOn").checked ? `${fmt(aiEnd*100,0)}%` : "wył.";
+
   $("heroPrep").textContent=data.p.short;
   $("heroDose").textContent=`${fmt(data.dose,2)} ml / ${fmt(data.interval,1)} d`;
   $("heroPeak").textContent=fmt(cmax,0);
   $("heroTrough").textContent=fmt(cmin,0);
-  $("chartSubtitle").textContent=`${data.p.label}: ${fmt(data.dose,2)} ml co ${fmt(data.interval,1)} dni${data.loading ? " z dawką nasycającą po 6 tygodniach" : ""}.`;
+  $("heroE2").textContent=fmt(e2avg,1);
+  $("heroAI").textContent=$("aiOn").checked ? `${fmt(aiAvg*100,0)}%` : "wył.";
+  $("chartSubtitle").textContent=`${data.p.label}: ${fmt(data.dose,2)} ml co ${fmt(data.interval,1)} dni${data.loading ? " z dawką nasycającą po 6 tygodniach" : ""}${$("aiOn").checked ? `, anastrozol ${fmt(readNum("aiDose"),3)} mg co ${fmt(readNum("aiInterval"),2)} dni` : ""}.`;
 }
 
 function canvasEnv(canvas,yMax,yLabel,xMax,title){
@@ -906,10 +1017,11 @@ function drawCharts(data){
   drawLine(envT,data.points,p=>p.nat,"#16a34a",2.4);
   drawLine(envT,data.points,p=>p.total,"#111827",3.4);
 
-  const maxE=Math.max(20,...data.points.map(p=>p.e2));
+  const maxE=Math.max(20,...data.points.map(p=>p.e2),...data.points.map(p=>p.e2Raw));
   const yMaxE=Math.ceil(maxE/10)*10;
-  const envE=canvasEnv($("chartE2"),yMaxE,"indeks E2, pg/ml",data.days,"Indeks aromatyzacji / E2");
+  const envE=canvasEnv($("chartE2"),yMaxE,"E2, pg/ml",data.days,"Estradiol: przed i po inhibitorze aromatazy");
   drawInjections(envE,data.injections);
+  drawLine(envE,data.points,p=>p.e2Raw,"#f97316",2.4);
   drawLine(envE,data.points,p=>p.e2,"#7c3aed",3);
 }
 
@@ -922,16 +1034,16 @@ function recalc(){
 
 function exportCSV(){
   if(!lastData) recalc();
-  const rows=[["dzien","testosteron_calkowity_ng_dl","testosteron_egzogenny_ng_dl","testosteron_naturalny_po_supresji_ng_dl","indeks_e2_pg_ml"]];
+  const rows=[["dzien","testosteron_calkowity_ng_dl","testosteron_egzogenny_ng_dl","testosteron_naturalny_po_supresji_ng_dl","e2_bez_ai_pg_ml","e2_po_ai_pg_ml","ai_ekspozycja_wzgledna","ai_hamowanie_proc"]];
   lastData.points.forEach(p=>{
-    rows.push([p.x,p.total,p.exog,p.nat,p.e2].map(v=>String(Number(v).toFixed(2)).replace(".",",")));
+    rows.push([p.x,p.total,p.exog,p.nat,p.e2Raw,p.e2,p.aiExposure/lastData.aiRef,p.aiSupp*100].map(v=>String(Number(v).toFixed(2)).replace(".",",")));
   });
   const csv=rows.map(r=>r.join(";")).join("\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url;
-  a.download="trt_plotter_v3.csv";
+  a.download="trt_plotter_v4.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -939,7 +1051,7 @@ function exportCSV(){
 function exportPNG(){
   const a=document.createElement("a");
   a.href=$("chartT").toDataURL("image/png");
-  a.download="trt_plotter_v3_testosteron.png";
+  a.download="trt_plotter_v4_testosteron.png";
   a.click();
 }
 
@@ -954,12 +1066,20 @@ function resetAll(){
   $("personalScale").value=1;
   $("e2Base").value=12;
   $("aromRate").value=0.025;
+  $("aiOn").checked=false;
+  $("aiDose").value=0.25;
+  $("aiInterval").value=3.5;
+  $("aiStart").value=0;
+  $("aiSensitivity").value=0.55;
+  $("aiHalf").value=2.08;
+  $("aiTmax").value=0.083;
+  $("aiMaxSupp").value=90;
   $("suppOn").checked=true;
   $("nebidoLoading").checked=true;
   applyPreset();
 }
 
-["dose","interval","days","step","weight","height","bodyFat","naturalT","maxSupp","suppHalf","personalScale","e2Base","aromRate","suppOn","nebidoLoading"].forEach(id=>{
+["dose","interval","days","step","weight","height","bodyFat","naturalT","maxSupp","suppHalf","personalScale","e2Base","aromRate","suppOn","nebidoLoading","aiOn","aiDose","aiInterval","aiStart","aiSensitivity","aiHalf","aiTmax","aiMaxSupp"].forEach(id=>{
   $(id).addEventListener("input",recalc);
   $(id).addEventListener("change",recalc);
 });
