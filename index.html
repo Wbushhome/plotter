@@ -3,673 +3,972 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TRT Plotter v2 | Omnadren, Nebido, Prolongatum</title>
+  <title>TRT Plotter v3 | Omnadren, Nebido, Prolongatum</title>
   <style>
     :root{
-      --bg:#f5f5f7;
-      --panel:#ffffffd9;
-      --white:#fff;
-      --text:#1d1d1f;
-      --muted:#6e6e73;
-      --line:#d2d2d7;
-      --soft:#ececf0;
-      --accent:#0a84ff;
-      --red:#ff453a;
-      --green:#30d158;
-      --purple:#7d5fff;
-      --shadow:0 18px 55px rgba(0,0,0,.08);
-      --radius:22px;
+      --bg:#eef1f6;
+      --paper:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --line2:#d1d5db;
+      --blue:#2563eb;
+      --blue2:#60a5fa;
+      --navy:#0f172a;
+      --green:#16a34a;
+      --violet:#7c3aed;
+      --orange:#f97316;
+      --red:#ef4444;
+      --shadow:0 22px 65px rgba(15,23,42,.10);
+      --shadow2:0 10px 30px rgba(15,23,42,.08);
+      --radius:24px;
+      --radius2:18px;
       --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:var(--sans);
-      color:var(--text);
+      color:var(--ink);
       background:
-        radial-gradient(circle at 10% 0%, #e8f4ff 0, transparent 34%),
-        radial-gradient(circle at 88% 8%, #fff0ee 0, transparent 30%),
-        linear-gradient(180deg,#fbfbfd,var(--bg));
+        radial-gradient(circle at 15% -10%, rgba(96,165,250,.32) 0, transparent 34%),
+        radial-gradient(circle at 88% 0%, rgba(124,58,237,.18) 0, transparent 26%),
+        linear-gradient(180deg,#f8fafc 0%, var(--bg) 100%);
       min-height:100vh;
     }
-    .wrap{max-width:1360px;margin:0 auto;padding:28px 18px 42px}
-    header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}
-    h1{font-size:clamp(30px,4.5vw,52px);letter-spacing:-.045em;line-height:1.02;margin:0 0 8px}
-    .lead{margin:0;color:var(--muted);font-size:16px;max-width:880px;line-height:1.45}
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.74);
-      border:1px solid rgba(210,210,215,.75);border-radius:999px;
-      padding:9px 13px;color:#3a3a3c;font-size:13px;box-shadow:0 8px 25px rgba(0,0,0,.04);
+    .shell{max-width:1460px;margin:0 auto;padding:22px 18px 42px}
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:32px;
+      padding:28px;
+      color:#fff;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(96,165,250,.55), transparent 35%),
+        radial-gradient(circle at 86% 22%, rgba(124,58,237,.40), transparent 35%),
+        linear-gradient(135deg,#0f172a 0%,#1e293b 58%,#111827 100%);
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+    .hero:after{
+      content:"";
+      position:absolute;
+      inset:auto -80px -160px auto;
+      width:360px;height:360px;border-radius:999px;
+      background:rgba(255,255,255,.08);
+      filter:blur(2px);
+    }
+    .hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:1.4fr .9fr;
+      gap:24px;
+      align-items:end;
+    }
+    h1{
+      margin:0 0 10px;
+      font-size:clamp(34px,5vw,64px);
+      line-height:.98;
+      letter-spacing:-.055em;
+      font-weight:900;
+    }
+    .lead{
+      margin:0;
+      color:rgba(255,255,255,.78);
+      font-size:16px;
+      line-height:1.48;
+      max-width:860px;
+    }
+    .hero-panel{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .hero-mini{
+      padding:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.08);
+      border-radius:20px;
+      backdrop-filter:blur(14px);
+    }
+    .hero-mini .a{font-size:22px;font-weight:850;letter-spacing:-.035em}
+    .hero-mini .b{font-size:12px;color:rgba(255,255,255,.70);margin-top:4px;line-height:1.25}
+    .main{
+      display:grid;
+      grid-template-columns:470px minmax(0,1fr);
+      gap:18px;
+      align-items:start;
+    }
+    .card{
+      background:rgba(255,255,255,.86);
+      backdrop-filter:blur(18px);
+      border:1px solid rgba(255,255,255,.82);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow2);
+    }
+    .panel{padding:16px}
+    .group{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:15px;
+      margin-bottom:12px;
+    }
+    .group:last-child{margin-bottom:0}
+    .group-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .group-title{font-weight:850;font-size:15px;letter-spacing:-.015em}
+    .group-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.3}
+    .pill{
+      display:inline-flex;
+      align-items:center;
       white-space:nowrap;
+      font-size:12px;
+      color:#1e40af;
+      background:#dbeafe;
+      border:1px solid #bfdbfe;
+      padding:6px 9px;
+      border-radius:999px;
+      font-weight:700;
     }
-    .grid{display:grid;grid-template-columns:420px 1fr;gap:18px;align-items:start}
-    .card{background:var(--panel);backdrop-filter:blur(18px);border:1px solid rgba(210,210,215,.74);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .pad{padding:18px}
-    .section-title{font-weight:800;font-size:16px;margin:0 0 12px;letter-spacing:-.015em}
-    .controls{display:grid;gap:13px}
-    label{display:block;font-size:13px;color:#3a3a3c;margin-bottom:6px}
+    .fields{display:grid;gap:10px}
+    .fields.two{grid-template-columns:1fr 1fr}
+    .fields.three{grid-template-columns:1fr 1fr 1fr}
+    .field{min-width:0}
+    label{
+      display:block;
+      font-size:12px;
+      color:#374151;
+      margin:0 0 6px;
+      font-weight:680;
+    }
     input,select{
-      width:100%;border:1px solid var(--line);border-radius:14px;padding:11px 12px;
-      font-size:15px;background:#fff;color:var(--text);outline:none;
+      width:100%;
+      min-width:0;
+      border:1px solid var(--line2);
+      border-radius:15px;
+      padding:11px 12px;
+      font-size:15px;
+      background:#fff;
+      color:var(--ink);
+      outline:none;
+      transition:border .15s, box-shadow .15s, transform .15s;
     }
-    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(10,132,255,.12)}
+    input:focus,select:focus{
+      border-color:var(--blue);
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
     input[type="checkbox"]{width:auto}
-    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-    .hint{font-size:12px;color:var(--muted);line-height:1.35;margin-top:6px}
-    .block{border-top:1px solid var(--line);padding-top:14px;margin-top:2px}
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.38;
+      margin-top:8px;
+    }
+    .check{
+      display:flex;
+      align-items:flex-start;
+      gap:9px;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:15px;
+      background:#f8fafc;
+      margin-top:10px;
+    }
+    .check label{margin:0;line-height:1.32}
+    .stats-row{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      margin-top:10px;
+    }
+    .mini{
+      min-width:0;
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+    }
+    .mini .a{font-size:18px;font-weight:860;letter-spacing:-.035em}
+    .mini .b{font-size:11px;color:var(--muted);line-height:1.24;margin-top:3px}
+    .btns{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+    }
     button{
-      appearance:none;border:0;border-radius:14px;padding:11px 14px;font-size:14px;font-weight:700;
-      background:#e8e8ed;color:#1d1d1f;cursor:pointer;transition:.15s ease;
+      border:0;
+      border-radius:16px;
+      padding:12px 13px;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      transition:transform .12s, box-shadow .12s, background .12s;
+      color:#111827;
+      background:#eef2ff;
     }
-    button:hover{transform:translateY(-1px)}
-    button.primary{background:var(--accent);color:#fff}
-    button.ghost{background:#fff;border:1px solid var(--line)}
-    button.danger{background:#ffe9e7;color:#c72118}
-    .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-    details summary{cursor:pointer;list-style:none;font-weight:800;color:#2c2c2e;margin-bottom:10px}
+    button:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(15,23,42,.08)}
+    button.primary{grid-column:1 / -1;background:linear-gradient(135deg,#2563eb,#7c3aed);color:white}
+    button.ghost{background:white;border:1px solid var(--line2)}
+    button.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
+    details summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-weight:850;
+    }
     details summary::-webkit-details-marker{display:none}
-    .ester-table{display:grid;gap:9px}
-    .ester-row{
-      display:grid;grid-template-columns:1fr .68fr .68fr .68fr .68fr;gap:8px;align-items:end;
-      padding:10px;background:#fff;border:1px solid var(--soft);border-radius:16px;
+    details summary:after{content:"rozwiń";font-size:12px;color:var(--muted);font-weight:700}
+    details[open] summary:after{content:"zwiń"}
+    .ester-list{display:grid;gap:10px;margin-top:12px}
+    .ester-card{
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px;
     }
-    .ester-row strong{font-size:13px;line-height:1.2}
-    .chart-card{padding:16px}
-    .chart-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
-    .chart-title{font-size:18px;font-weight:850;letter-spacing:-.02em}
-    canvas{
-      width:100%;display:block;background:linear-gradient(180deg,#fff,#fbfbfd);
-      border:1px solid var(--soft);border-radius:18px;
+    .ester-name{
+      font-weight:850;
+      font-size:13px;
+      margin-bottom:10px;
+      letter-spacing:-.01em;
     }
-    #chartT{height:510px}
-    #chartE2{height:270px;margin-top:12px}
-    .summary{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:12px}
-    .metric{background:#fff;border:1px solid var(--soft);border-radius:17px;padding:12px;min-height:88px}
-    .metric .v{font-size:23px;font-weight:860;letter-spacing:-.03em;margin-bottom:4px}
-    .metric .k{font-size:12px;color:var(--muted);line-height:1.25}
-    .note{margin-top:12px;color:var(--muted);font-size:13px;line-height:1.45;background:#fff;border:1px solid var(--soft);border-radius:16px;padding:12px}
-    .legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-top:4px}
-    .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--accent)}
+    .ester-inputs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+    }
+    .visual{padding:16px}
+    .chart-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:12px;
+    }
+    .title-block .title{
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:-.035em;
+    }
+    .title-block .sub{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:3px;
+    }
+    .legend{
+      display:flex;
+      gap:11px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:8px;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;display:inline-block;background:#111827;margin-right:5px;vertical-align:-1px}
+    .dot.exog{background:var(--blue)}
     .dot.nat{background:var(--green)}
-    .dot.e2{background:var(--purple)}
-    .dot.inj{background:#8e8e93;border-radius:2px}
-    .calcbox{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-    .mini{background:#fff;border:1px solid var(--soft);border-radius:14px;padding:9px}
-    .mini .a{font-size:17px;font-weight:820;letter-spacing:-.02em}
-    .mini .b{font-size:11px;color:var(--muted);margin-top:2px}
-    footer{color:var(--muted);font-size:12px;line-height:1.45;margin-top:14px}
-    .checkline{display:flex;gap:8px;align-items:center}
-    .checkline label{margin:0}
-    @media (max-width: 1080px){
-      .grid{grid-template-columns:1fr}
-      .summary{grid-template-columns:repeat(3,1fr)}
-      #chartT{height:430px}
+    .dot.e2{background:var(--violet)}
+    .dot.inj{background:#94a3b8;border-radius:2px}
+    .chart-wrap{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:10px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
     }
-    @media (max-width: 640px){
-      .row2,.row3{grid-template-columns:1fr}
-      .summary,.calcbox{grid-template-columns:1fr 1fr}
-      .ester-row{grid-template-columns:1fr 1fr}
-      .wrap{padding:18px 12px 28px}
-      header{display:block}
-      .badge{margin-top:12px}
+    canvas{
+      display:block;
+      width:100%;
+      border-radius:18px;
+      background:linear-gradient(180deg,#fff,#f8fafc);
+    }
+    #chartT{height:520px}
+    #chartE2{height:300px;margin-top:12px}
+    .metrics{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+    .metric{
+      background:white;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px;
+      min-height:92px;
+    }
+    .metric .v{font-size:24px;font-weight:900;letter-spacing:-.04em;margin-bottom:4px}
+    .metric .k{font-size:12px;color:var(--muted);line-height:1.25}
+    .info-box{
+      margin-top:12px;
+      background:linear-gradient(180deg,#fff,#f8fafc);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:14px;
+      color:#4b5563;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .ref-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    .ref{
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:11px;
+      font-size:12px;
+      color:#4b5563;
+      line-height:1.32;
+    }
+    .ref strong{display:block;color:#111827;font-size:13px;margin-bottom:3px}
+    @media (max-width:1180px){
+      .main{grid-template-columns:1fr}
+      .hero-grid{grid-template-columns:1fr}
+      .metrics{grid-template-columns:repeat(3,1fr)}
+    }
+    @media (max-width:680px){
+      .shell{padding:14px 10px 28px}
+      .hero{padding:20px;border-radius:24px}
+      .hero-panel,.fields.two,.fields.three,.stats-row,.metrics,.ref-grid{grid-template-columns:1fr}
+      .main{gap:12px}
+      .btns{grid-template-columns:1fr}
+      #chartT{height:430px}
+      #chartE2{height:260px}
     }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>TRT Plotter v2</h1>
-      <p class="lead">
-        Orientacyjny ploter stężenia testosteronu całkowitego po iniekcjach.
-        Uwzględnia wybór preparatu, dawkę, interwał, masę ciała, wzrost, tkankę tłuszczową,
-        naturalny testosteron oraz stopniową supresję własnej produkcji.
-      </p>
+<div class="shell">
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <h1>TRT Plotter v3</h1>
+        <p class="lead">
+          Ploter stężenia testosteronu całkowitego po iniekcjach. Model został skalibrowany do danych farmakokinetycznych dla mieszaniny estrów, Nebido i testosteronu enantanu. Nadal jest to symulacja poglądowa, ale nie opiera się już na przypadkowym mnożniku.
+        </p>
+      </div>
+      <div class="hero-panel">
+        <div class="hero-mini"><div class="a" id="heroPrep">Omnadren</div><div class="b">wybrany preparat</div></div>
+        <div class="hero-mini"><div class="a" id="heroDose">–</div><div class="b">dawka i interwał</div></div>
+        <div class="hero-mini"><div class="a" id="heroPeak">–</div><div class="b">szczyt w ostatnim interwale</div></div>
+        <div class="hero-mini"><div class="a" id="heroTrough">–</div><div class="b">dołek w ostatnim interwale</div></div>
+      </div>
     </div>
-    <div class="badge">model poglądowy, nie kalkulator leczenia</div>
-  </header>
+  </section>
 
-  <div class="grid">
-    <aside class="card pad">
-      <div class="controls">
-        <div>
-          <p class="section-title">Preparat i dawkowanie</p>
-          <label for="prep">Lek</label>
-          <select id="prep">
-            <option value="omnadren">Omnadren 250</option>
-            <option value="nebido">Nebido 1000 mg/4 ml</option>
-            <option value="prolongatum">Testosteronum Prolongatum Jelfa 100 mg/ml</option>
-          </select>
-          <div class="hint" id="prepHint"></div>
+  <div class="main">
+    <aside class="card panel">
+      <div class="group">
+        <div class="group-head">
+          <div>
+            <div class="group-title">Preparat i schemat</div>
+            <div class="group-sub">Wybierz lek, dawkę i odstęp między iniekcjami.</div>
+          </div>
+          <span class="pill" id="calibBadge">kalibracja PK</span>
         </div>
-
-        <div class="row2">
-          <div>
-            <label for="dose">Dawka na iniekcję, ml</label>
-            <input id="dose" type="number" min="0" step="0.05" value="1">
-          </div>
-          <div>
-            <label for="interval">Interwał, dni</label>
-            <input id="interval" type="number" min="1" step="0.5" value="14">
-          </div>
-        </div>
-
-        <div class="row2">
-          <div>
-            <label for="days">Długość symulacji, dni</label>
-            <input id="days" type="number" min="14" step="1" value="140">
-          </div>
-          <div>
-            <label for="step">Dokładność wykresu</label>
-            <select id="step">
-              <option value="1">1 dzień</option>
-              <option value="0.5">0,5 dnia</option>
-              <option value="0.25" selected>0,25 dnia</option>
-              <option value="0.1">0,1 dnia</option>
+        <div class="fields">
+          <div class="field">
+            <label for="prep">Preparat</label>
+            <select id="prep">
+              <option value="omnadren">Omnadren 250 / mieszanka estrów 250 mg/ml</option>
+              <option value="nebido">Nebido 1000 mg/4 ml</option>
+              <option value="prolongatum">Testosteronum Prolongatum Jelfa 100 mg/ml</option>
             </select>
           </div>
+          <div class="fields two">
+            <div class="field">
+              <label for="dose">Dawka na iniekcję, ml</label>
+              <input id="dose" type="number" min="0" step="0.05" value="1">
+            </div>
+            <div class="field">
+              <label for="interval">Interwał, dni</label>
+              <input id="interval" type="number" min="1" step="0.5" value="14">
+            </div>
+          </div>
+          <div class="fields two">
+            <div class="field">
+              <label for="days">Zakres wykresu, dni</label>
+              <input id="days" type="number" min="14" step="1" value="140">
+            </div>
+            <div class="field">
+              <label for="step">Dokładność</label>
+              <select id="step">
+                <option value="1">1 dzień</option>
+                <option value="0.5">0,5 dnia</option>
+                <option value="0.25" selected>0,25 dnia</option>
+                <option value="0.1">0,1 dnia</option>
+              </select>
+            </div>
+          </div>
+          <div class="check" id="nebidoBox">
+            <input id="nebidoLoading" type="checkbox" checked>
+            <label for="nebidoLoading">Dla Nebido dodaj dawkę nasycającą po 6 tygodniach, a potem podawaj według interwału.</label>
+          </div>
+          <div class="stats-row">
+            <div class="mini"><div class="a" id="mgEster">–</div><div class="b">mg estru / iniekcja</div></div>
+            <div class="mini"><div class="a" id="mgBase">–</div><div class="b">mg testosteronu / iniekcja</div></div>
+            <div class="mini"><div class="a" id="mgWeek">–</div><div class="b">mg estru / tydzień</div></div>
+          </div>
+          <div class="hint" id="prepHint"></div>
         </div>
+      </div>
 
-        <div class="calcbox">
-          <div class="mini"><div class="a" id="mgPerShot">–</div><div class="b">mg estrów / iniekcja</div></div>
-          <div class="mini"><div class="a" id="mgBasePerShot">–</div><div class="b">mg testosteronu bazowego / iniekcja</div></div>
-          <div class="mini"><div class="a" id="mgWeek">–</div><div class="b">mg estrów / tydzień</div></div>
-        </div>
-
-        <div class="block">
-          <p class="section-title">Pacjent</p>
-          <div class="row3">
-            <div>
-              <label for="weight">Masa, kg</label>
-              <input id="weight" type="number" min="35" step="1" value="88">
-            </div>
-            <div>
-              <label for="height">Wzrost, cm</label>
-              <input id="height" type="number" min="120" step="1" value="178">
-            </div>
-            <div>
-              <label for="bodyFat">Tkanka tłuszczowa, %</label>
-              <input id="bodyFat" type="number" min="3" max="60" step="0.5" value="22">
-            </div>
-          </div>
-          <div class="calcbox">
-            <div class="mini"><div class="a" id="bmiOut">–</div><div class="b">BMI</div></div>
-            <div class="mini"><div class="a" id="leanOut">–</div><div class="b">szacowana masa beztłuszczowa</div></div>
-            <div class="mini"><div class="a" id="aromOut">–</div><div class="b">mnożnik aromatyzacji</div></div>
+      <div class="group">
+        <div class="group-head">
+          <div>
+            <div class="group-title">Pacjent</div>
+            <div class="group-sub">Masa wpływa na objętość dystrybucji, a tkanka tłuszczowa na indeks aromatyzacji.</div>
           </div>
         </div>
-
-        <div class="block">
-          <p class="section-title">Naturalny testosteron i supresja</p>
-          <div class="row2">
-            <div>
-              <label for="naturalT">Naturalny testosteron startowy, ng/dl</label>
-              <input id="naturalT" type="number" min="0" step="10" value="350">
-            </div>
-            <div>
-              <label for="maxSupp">Maksymalna supresja, %</label>
-              <input id="maxSupp" type="number" min="0" max="100" step="1" value="95">
-            </div>
-          </div>
-          <div class="row2">
-            <div>
-              <label for="suppHalf">Czas do 50% supresji, dni</label>
-              <input id="suppHalf" type="number" min="1" step="1" value="14">
-            </div>
-            <div>
-              <label for="personalScale">Osobnicza odpowiedź</label>
-              <input id="personalScale" type="number" min="0.1" step="0.1" value="1">
-            </div>
-          </div>
-          <div class="checkline">
-            <input id="suppOn" type="checkbox" checked>
-            <label for="suppOn">Uwzględnij stopniowe hamowanie produkcji własnej</label>
-          </div>
-          <div class="hint">To uproszczenie. Model pokazuje wygaszanie produkcji własnej podczas podaży egzogennej, ale nie symuluje pełnej diagnostyki osi HPTA ani zejścia z terapii.</div>
+        <div class="fields three">
+          <div class="field"><label for="weight">Masa, kg</label><input id="weight" type="number" min="35" step="1" value="88"></div>
+          <div class="field"><label for="height">Wzrost, cm</label><input id="height" type="number" min="120" step="1" value="178"></div>
+          <div class="field"><label for="bodyFat">Tkanka tłuszczowa, %</label><input id="bodyFat" type="number" min="3" max="60" step="0.5" value="22"></div>
         </div>
-
-        <div class="block">
-          <p class="section-title">Aromatyzacja do estradiolu</p>
-          <div class="row2">
-            <div>
-              <label for="e2Base">Estradiol bazowy, pg/ml</label>
-              <input id="e2Base" type="number" min="0" step="1" value="12">
-            </div>
-            <div>
-              <label for="aromRate">Współczynnik E2</label>
-              <input id="aromRate" type="number" min="0" step="0.001" value="0.025">
-            </div>
-          </div>
-          <div class="hint">Drugi wykres to szacunkowy indeks E2, nie wynik laboratoryjny. Tkanka tłuszczowa zwiększa mnożnik aromatyzacji.</div>
+        <div class="stats-row">
+          <div class="mini"><div class="a" id="bmiOut">–</div><div class="b">BMI</div></div>
+          <div class="mini"><div class="a" id="leanOut">–</div><div class="b">masa beztłuszczowa</div></div>
+          <div class="mini"><div class="a" id="aromOut">–</div><div class="b">mnożnik aromatyzacji</div></div>
         </div>
+      </div>
 
-        <details class="block">
-          <summary>Założenia estrów, równoważników i półokresów</summary>
-          <div class="hint" style="margin-bottom:10px">
-            Możesz edytować wartości. „Tmax” to roboczy czas dojścia do piku po iniekcji. „t½” to roboczy efektywny półokres zanikania w tym uproszczonym modelu.
+      <div class="group">
+        <div class="group-head">
+          <div>
+            <div class="group-title">Produkcja własna i supresja</div>
+            <div class="group-sub">Naturalny testosteron jest wygaszany stopniowo przez ujemne sprzężenie zwrotne.</div>
           </div>
-          <div id="esterTable" class="ester-table"></div>
+        </div>
+        <div class="fields two">
+          <div class="field"><label for="naturalT">Naturalny T startowy, ng/dl</label><input id="naturalT" type="number" min="0" step="10" value="350"></div>
+          <div class="field"><label for="maxSupp">Maksymalna supresja, %</label><input id="maxSupp" type="number" min="0" max="100" step="1" value="95"></div>
+        </div>
+        <div class="fields two" style="margin-top:10px">
+          <div class="field"><label for="suppHalf">Czas do 50% supresji, dni</label><input id="suppHalf" type="number" min="1" step="1" value="14"></div>
+          <div class="field"><label for="personalScale">Odpowiedź osobnicza</label><input id="personalScale" type="number" min="0.2" step="0.05" value="1"></div>
+        </div>
+        <div class="check">
+          <input id="suppOn" type="checkbox" checked>
+          <label for="suppOn">Uwzględnij hamowanie produkcji własnej testosteronu.</label>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head">
+          <div>
+            <div class="group-title">Estradiol i aromatyzacja</div>
+            <div class="group-sub">Wykres E2 jest indeksem, a nie wynikiem laboratoryjnym.</div>
+          </div>
+        </div>
+        <div class="fields two">
+          <div class="field"><label for="e2Base">Estradiol bazowy, pg/ml</label><input id="e2Base" type="number" min="0" step="1" value="12"></div>
+          <div class="field"><label for="aromRate">Współczynnik E2</label><input id="aromRate" type="number" min="0" step="0.001" value="0.025"></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <details>
+          <summary>Zaawansowane parametry estrów</summary>
+          <div class="hint">Zmiana tych wartości wpływa na kształt krzywej. Po zmianie preparatu kliknięcie „preset leku” przywraca wartości domyślne.</div>
+          <div class="ester-list" id="esterTable"></div>
         </details>
+      </div>
 
+      <div class="group">
         <div class="btns">
           <button class="primary" id="calcBtn">Przelicz wykres</button>
-          <button class="ghost" id="presetBtn">Ustaw preset leku</button>
+          <button class="ghost" id="presetBtn">Preset leku</button>
           <button class="ghost" id="csvBtn">Eksport CSV</button>
           <button class="ghost" id="pngBtn">Zapisz PNG</button>
-          <button class="danger" id="resetBtn">Reset</button>
+          <button class="warn" id="resetBtn">Reset</button>
         </div>
-
-        <footer>
-          Wykres ma pomagać w rozumieniu trendu, pików i dołków. Nie zastępuje oznaczeń laboratoryjnych ani decyzji lekarza.
-        </footer>
       </div>
     </aside>
 
-    <main class="card chart-card">
-      <div class="chart-top">
-        <div>
-          <div class="chart-title">Szacowane stężenie testosteronu całkowitego</div>
+    <main class="card visual">
+      <div class="chart-head">
+        <div class="title-block">
+          <div class="title">Szacowane stężenie testosteronu całkowitego</div>
+          <div class="sub" id="chartSubtitle">–</div>
           <div class="legend">
-            <span><i class="dot"></i> testosteron egzogenny</span>
-            <span><i class="dot nat"></i> produkcja naturalna po supresji</span>
-            <span><i class="dot inj"></i> iniekcje</span>
+            <span><i class="dot"></i> testosteron całkowity</span>
+            <span><i class="dot exog"></i> wkład egzogenny</span>
+            <span><i class="dot nat"></i> produkcja własna</span>
+            <span><i class="dot inj"></i> iniekcja</span>
+            <span><i class="dot e2"></i> indeks E2</span>
           </div>
         </div>
-        <div class="badge" id="doseInfo">–</div>
+        <span class="pill" id="modeLabel">tryb empiryczny</span>
       </div>
 
-      <canvas id="chartT" width="1120" height="620"></canvas>
-      <canvas id="chartE2" width="1120" height="310"></canvas>
+      <div class="chart-wrap">
+        <canvas id="chartT" width="1180" height="640"></canvas>
+        <canvas id="chartE2" width="1180" height="340"></canvas>
+      </div>
 
-      <div class="summary">
+      <div class="metrics">
         <div class="metric"><div class="v" id="mCmax">–</div><div class="k">Cmax TT w ostatnim interwale</div></div>
         <div class="metric"><div class="v" id="mCmin">–</div><div class="k">Cmin TT w ostatnim interwale</div></div>
         <div class="metric"><div class="v" id="mAvg">–</div><div class="k">Średnia TT z ostatnich 30 dni</div></div>
-        <div class="metric"><div class="v" id="mNat">–</div><div class="k">Produkcja naturalna na końcu</div></div>
-        <div class="metric"><div class="v" id="mE2">–</div><div class="k">Średni indeks E2 z ostatnich 30 dni</div></div>
-        <div class="metric"><div class="v" id="mSwing">–</div><div class="k">Różnica szczyt/dołek TT</div></div>
+        <div class="metric"><div class="v" id="mNat">–</div><div class="k">Naturalny T na końcu</div></div>
+        <div class="metric"><div class="v" id="mE2">–</div><div class="k">Średni indeks E2 z 30 dni</div></div>
+        <div class="metric"><div class="v" id="mSwing">–</div><div class="k">Różnica szczyt/dołek</div></div>
       </div>
 
-      <div class="note">
-        Ten model celowo ma parametry edytowalne. U jednej osoby 1 ml danego preparatu może dawać inne stężenie niż u drugiej osoby.
-        Najrozsądniej używać go tak: wpisać schemat, zrobić badania w znanym dniu po iniekcji, a potem skalibrować pole „Osobnicza odpowiedź”.
+      <div class="info-box">
+        <strong>Jak czytać wykres:</strong> czarna linia to testosteron całkowity, czyli suma wkładu z leku i pozostałej produkcji własnej. Niebieska linia pokazuje sam wkład egzogenny, zielona produkcję własną po supresji, a fioletowy wykres niżej pokazuje szacunkowy indeks aromatyzacji do E2.
+      </div>
+
+      <div class="ref-grid">
+        <div class="ref"><strong>Omnadren / mieszanka estrów</strong>Kalibracja do profilu typu Sustanon: szczyt około 70 nmol/l po 24–48 h i powrót do dolnej granicy normy około 21 dnia po 1 ml.</div>
+        <div class="ref"><strong>Nebido</strong>Kalibracja do 1000 mg: po pierwszej dawce Cmax około 38 nmol/l po 7 dniach, w stanie stacjonarnym około 37/16 nmol/l Cmax/Cmin.</div>
+        <div class="ref"><strong>Enantan / Prolongatum</strong>Kalibracja do danych dla enantanu: pik w okolicy 1–3 dnia, wyraźny spadek w 1–2 tygodniu i duża zależność od interwału.</div>
       </div>
     </main>
   </div>
 </div>
 
 <script>
+const NMOL_TO_NGDL = 28.84;
+
 const PREPS = {
   omnadren: {
-    label: "Omnadren 250",
-    hint: "1 ml zawiera 250 mg mieszaniny estrów testosteronu: propionian, fenylopropionian, izokapronian i dekanonian.",
-    dose: 1,
-    interval: 14,
-    days: 140,
-    scale: 1,
-    esters: [
-      { key:"prop", name:"Propionian", mg:30, eq:0.837, hl:2.0, tmax:0.6 },
-      { key:"phen", name:"Fenylopropionian", mg:60, eq:0.686, hl:4.5, tmax:1.2 },
-      { key:"iso",  name:"Izokapronian", mg:60, eq:0.746, hl:9.0, tmax:2.5 },
-      { key:"dec",  name:"Dekanonian", mg:100, eq:0.652, hl:15.0, tmax:3.5 }
+    short:"Omnadren",
+    label:"Omnadren 250",
+    hint:"1 ml zawiera 250 mg estrów, co odpowiada około 176 mg testosteronu. Profil kalibrowany do danych dla mieszaniny estrów typu Sustanon/Omnadren.",
+    defaultDose:1, defaultInterval:14, defaultDays:140,
+    reference:"Cmax ok. 70 nmol/l po 24–48 h; powrót do dolnej granicy normy ok. 21 dnia.",
+    calibType:"single_cmax",
+    calibDose:1,
+    calibTarget:70 * NMOL_TO_NGDL,
+    esters:[
+      {name:"Propionian", mg:30, eq:0.837, half:1.2, tmax:0.8},
+      {name:"Fenylopropionian", mg:60, eq:0.686, half:3.8, tmax:1.6},
+      {name:"Izokapronian", mg:60, eq:0.746, half:7.5, tmax:2.4},
+      {name:"Dekanonian", mg:100, eq:0.652, half:13.5, tmax:3.2}
     ]
   },
   nebido: {
-    label: "Nebido 1000 mg/4 ml",
-    hint: "1 ml zawiera 250 mg testosteronu undecylanu. Pełna ampułka 4 ml zawiera 1000 mg estru, czyli ok. 631,5 mg testosteronu.",
-    dose: 4,
-    interval: 70,
-    days: 360,
-    scale: 0.45,
-    esters: [
-      { key:"und", name:"Undecylan", mg:250, eq:0.6315, hl:53.0, tmax:7.0 }
+    short:"Nebido",
+    label:"Nebido 1000 mg/4 ml",
+    hint:"1 ml zawiera 250 mg testosteronu undecylanu; pełna dawka 4 ml zawiera 1000 mg estru i około 631,5 mg testosteronu.",
+    defaultDose:4, defaultInterval:70, defaultDays:420,
+    reference:"Po 1000 mg: Cmax ok. 38 nmol/l po 7 dniach; steady-state Cmax/Cmin ok. 37/16 nmol/l.",
+    calibType:"steady_avg",
+    calibDose:4,
+    calibInterval:70,
+    calibDays:420,
+    calibTargetAvg:((37+16)/2) * NMOL_TO_NGDL,
+    esters:[
+      {name:"Undecylan", mg:250, eq:0.6315, half:90, tmax:7}
     ]
   },
   prolongatum: {
-    label: "Testosteronum Prolongatum Jelfa",
-    hint: "1 ml zawiera 100 mg testosteronu enantanu.",
-    dose: 1,
-    interval: 7,
-    days: 140,
-    scale: 1.2,
-    esters: [
-      { key:"ena", name:"Enantan", mg:100, eq:0.720, hl:5.0, tmax:2.0 }
+    short:"Prolongatum",
+    label:"Testosteronum Prolongatum Jelfa",
+    hint:"1 ml zawiera 100 mg testosteronu enantanu. Domyślnie ustawiony jest schemat 1 ml co 7 dni.",
+    defaultDose:1, defaultInterval:7, defaultDays:140,
+    reference:"Enantan: pik około 1–3 dnia, potem spadek w kolejnych 1–2 tygodniach.",
+    calibType:"weekly_avg",
+    calibDose:1,
+    calibInterval:7,
+    calibDays:120,
+    calibTargetAvg:650,
+    esters:[
+      {name:"Enantan", mg:100, eq:0.720, half:4.8, tmax:2}
     ]
   }
 };
 
 let esters = structuredClone(PREPS.omnadren.esters);
 let lastData = null;
+let calibCache = {};
 
 const $ = id => document.getElementById(id);
-
 function fmt(n, dec=0){
   if(!Number.isFinite(n)) return "–";
-  return n.toLocaleString("pl-PL", { maximumFractionDigits: dec, minimumFractionDigits: dec });
+  return n.toLocaleString("pl-PL",{maximumFractionDigits:dec,minimumFractionDigits:dec});
 }
-function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-function readNum(id){ const v = Number($(id).value); return Number.isFinite(v) ? v : 0; }
-
-function currentPrep(){
-  return PREPS[$("prep").value] || PREPS.omnadren;
-}
-
-function applyPreset(){
-  const prep = currentPrep();
-  esters = structuredClone(prep.esters);
-  $("dose").value = prep.dose;
-  $("interval").value = prep.interval;
-  $("days").value = prep.days;
-  $("personalScale").value = prep.scale;
-  $("prepHint").textContent = prep.hint;
-  buildEsterTable();
-  recalc();
-}
-
-function updatePrepHintOnly(){
-  $("prepHint").textContent = currentPrep().hint;
-}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function readNum(id){const v=Number($(id).value); return Number.isFinite(v)?v:0}
+function prep(){return PREPS[$("prep").value] || PREPS.omnadren}
 
 function buildEsterTable(){
-  const root = $("esterTable");
-  root.innerHTML = "";
-  esters.forEach((e, i) => {
-    const row = document.createElement("div");
-    row.className = "ester-row";
-    row.innerHTML = `
-      <div><strong>${e.name}</strong><div class="hint">w 1 ml</div></div>
-      <div><label>mg estru</label><input data-i="${i}" data-k="mg" type="number" step="1" min="0" value="${e.mg}"></div>
-      <div><label>ekwiw.</label><input data-i="${i}" data-k="eq" type="number" step="0.001" min="0" value="${e.eq}"></div>
-      <div><label>t½ dni</label><input data-i="${i}" data-k="hl" type="number" step="0.1" min="0.1" value="${e.hl}"></div>
-      <div><label>Tmax</label><input data-i="${i}" data-k="tmax" type="number" step="0.1" min="0" value="${e.tmax}"></div>
+  const root=$("esterTable");
+  root.innerHTML="";
+  esters.forEach((e,i)=>{
+    const c=document.createElement("div");
+    c.className="ester-card";
+    c.innerHTML=`
+      <div class="ester-name">${e.name}</div>
+      <div class="ester-inputs">
+        <div class="field"><label>mg estru / ml</label><input data-i="${i}" data-k="mg" type="number" min="0" step="1" value="${e.mg}"></div>
+        <div class="field"><label>równoważnik T</label><input data-i="${i}" data-k="eq" type="number" min="0" step="0.001" value="${e.eq}"></div>
+        <div class="field"><label>efektywny t½, dni</label><input data-i="${i}" data-k="half" type="number" min="0.1" step="0.1" value="${e.half}"></div>
+        <div class="field"><label>Tmax, dni</label><input data-i="${i}" data-k="tmax" type="number" min="0" step="0.1" value="${e.tmax}"></div>
+      </div>
     `;
-    root.appendChild(row);
+    root.appendChild(c);
   });
-  root.querySelectorAll("input").forEach(inp => {
-    inp.addEventListener("input", ev => {
-      const i = Number(ev.target.dataset.i);
-      const k = ev.target.dataset.k;
-      esters[i][k] = Number(ev.target.value);
+  root.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input",ev=>{
+      const i=Number(ev.target.dataset.i);
+      const k=ev.target.dataset.k;
+      esters[i][k]=Number(ev.target.value);
+      calibCache={};
       recalc();
     });
   });
 }
 
-function injectionDays(totalDays, interval){
-  const arr = [];
-  for(let d=0; d<=totalDays + 1e-9; d += interval) arr.push(Number(d.toFixed(4)));
-  return arr;
-}
-
-function bodyStats(){
-  const weight = Math.max(35, readNum("weight"));
-  const heightCm = Math.max(120, readNum("height"));
-  const bodyFat = clamp(readNum("bodyFat"), 3, 60);
-  const heightM = heightCm / 100;
-  const bmi = weight / (heightM * heightM);
-  const lean = weight * (1 - bodyFat / 100);
-
-  // Osoby cięższe mają zwykle większą objętość dystrybucji, więc ten sam zastrzyk daje niższy pik.
-  const volumeFactor = Math.pow(80 / weight, 0.35);
-
-  // Tkanka tłuszczowa i BMI podbijają tylko indeks aromatyzacji, nie sam testosteron.
-  const fatFactor = 1 + Math.max(0, bodyFat - 15) * 0.035 + Math.max(0, bmi - 25) * 0.025;
-
-  return { weight, heightCm, bodyFat, bmi, lean, volumeFactor, fatFactor };
+function applyPreset(){
+  const p=prep();
+  esters=structuredClone(p.esters);
+  $("dose").value=p.defaultDose;
+  $("interval").value=p.defaultInterval;
+  $("days").value=p.defaultDays;
+  $("prepHint").textContent=p.hint + " " + p.reference;
+  $("nebidoBox").style.display = $("prep").value === "nebido" ? "flex" : "none";
+  buildEsterTable();
+  calibCache={};
+  recalc();
 }
 
 function mgInfo(dose){
-  const mgEster = esters.reduce((sum,e)=>sum + dose * e.mg, 0);
-  const mgBase = esters.reduce((sum,e)=>sum + dose * e.mg * e.eq, 0);
-  return { mgEster, mgBase };
+  const mgEster=esters.reduce((s,e)=>s + dose*e.mg,0);
+  const mgBase=esters.reduce((s,e)=>s + dose*e.mg*e.eq,0);
+  return {mgEster,mgBase};
 }
 
-function esterContribution(age, doseMl, e, scale, volumeFactor){
-  if(age < 0) return 0;
-  const baseMg = doseMl * e.mg * e.eq;
-  const tmax = Math.max(0, e.tmax || 0);
-  const rampTau = Math.max(0.05, tmax / 2);
-  const ramp = tmax <= 0 ? 1 : (1 - Math.exp(-age / rampTau));
-  const decayAge = Math.max(0, age - tmax);
-  const k = Math.LN2 / Math.max(e.hl, 0.01);
-  return baseMg * scale * volumeFactor * ramp * Math.exp(-k * decayAge);
+function bodyStats(){
+  const weight=Math.max(35,readNum("weight"));
+  const height=Math.max(120,readNum("height"));
+  const bf=clamp(readNum("bodyFat"),3,60);
+  const hm=height/100;
+  const bmi=weight/(hm*hm);
+  const lean=weight*(1-bf/100);
+  const volumeFactor=Math.pow(82/weight,0.28);
+  const aromFactor=1 + Math.max(0,bf-15)*0.038 + Math.max(0,bmi-25)*0.023;
+  return {weight,height,bf,bmi,lean,volumeFactor,aromFactor};
 }
 
-function exogenousAt(t, doseMl, injections, scale, volumeFactor){
-  let y = 0;
+function injectionDays(days, interval, withNebidoLoading=false){
+  const arr=[];
+  if(withNebidoLoading){
+    arr.push(0);
+    if(days >= 42) arr.push(42);
+    for(let d=42+interval; d<=days+1e-9; d+=interval) arr.push(Number(d.toFixed(4)));
+    return arr;
+  }
+  for(let d=0; d<=days+1e-9; d+=interval) arr.push(Number(d.toFixed(4)));
+  return arr;
+}
+
+function releaseShape(age,e){
+  if(age<0) return 0;
+  const tmax=Math.max(0.05,e.tmax || 0.05);
+  const riseTau=Math.max(0.05,tmax/2.2);
+  const rise=1-Math.exp(-age/riseTau);
+  const decayAge=Math.max(0,age-tmax);
+  const decay=Math.exp(-Math.LN2*decayAge/Math.max(0.1,e.half));
+  return rise*decay;
+}
+
+function unscaledAt(t,dose,injections,estersSet=esters){
+  let y=0;
   for(const inj of injections){
-    if(t < inj) continue;
-    const age = t - inj;
-    for(const e of esters) y += esterContribution(age, doseMl, e, scale, volumeFactor);
+    if(t<inj) continue;
+    const age=t-inj;
+    for(const e of estersSet){
+      y += dose * e.mg * e.eq * releaseShape(age,e);
+    }
   }
   return y;
 }
 
-function naturalAt(t, exog, initialNatural){
-  if(!$("suppOn").checked) return initialNatural;
-  if(initialNatural <= 0) return 0;
-  const maxSupp = clamp(readNum("maxSupp") / 100, 0, 1);
-  const suppHalf = Math.max(1, readNum("suppHalf"));
-  const progress = 1 - Math.exp(-Math.LN2 * t / suppHalf);
-  const drive = exog > 20 ? 1 : clamp(exog / 20, 0, 1);
-  const suppressedFraction = maxSupp * progress * drive;
-  return initialNatural * (1 - suppressedFraction);
+function makeSeries(days,step,dose,injections,scale,volumeFactor,estersSet=esters){
+  const pts=[];
+  const n=Math.round(days/step);
+  for(let i=0;i<=n;i++){
+    const x=Number((i*step).toFixed(4));
+    const exog=unscaledAt(x,dose,injections,estersSet)*scale*volumeFactor;
+    pts.push({x,exog});
+  }
+  return pts;
 }
 
-function e2At(totalT, body, e2Base, aromRate){
-  return e2Base + Math.max(0, totalT) * aromRate * body.fatFactor;
+function computeScaleForPrep(){
+  const key=$("prep").value + JSON.stringify(esters);
+  if(calibCache[key]) return calibCache[key];
+  const p=prep();
+  let scale=3.6;
+
+  if(p.calibType==="single_cmax"){
+    const inj=[0];
+    const pts=makeSeries(35,0.1,p.calibDose,inj,1,1,esters);
+    const max=Math.max(...pts.map(p=>p.exog));
+    scale=p.calibTarget / Math.max(max,0.0001);
+  }
+
+  if(p.calibType==="steady_avg"){
+    const inj=injectionDays(p.calibDays,p.calibInterval,true);
+    const pts=makeSeries(p.calibDays,0.5,p.calibDose,inj,1,1,esters);
+    const last=pts.filter(x=>x.x >= p.calibDays - p.calibInterval);
+    const avg=last.reduce((s,x)=>s+x.exog,0)/Math.max(1,last.length);
+    scale=p.calibTargetAvg / Math.max(avg,0.0001);
+  }
+
+  if(p.calibType==="weekly_avg"){
+    const inj=injectionDays(p.calibDays,p.calibInterval,false);
+    const pts=makeSeries(p.calibDays,0.25,p.calibDose,inj,1,1,esters);
+    const last=pts.filter(x=>x.x >= p.calibDays - 28);
+    const avg=last.reduce((s,x)=>s+x.exog,0)/Math.max(1,last.length);
+    scale=p.calibTargetAvg / Math.max(avg,0.0001);
+  }
+
+  calibCache[key]=scale;
+  return scale;
+}
+
+function naturalAt(t,exog,initial){
+  if(!$("suppOn").checked) return initial;
+  if(initial<=0) return 0;
+  const maxSupp=clamp(readNum("maxSupp")/100,0,1);
+  const half=Math.max(1,readNum("suppHalf"));
+  const timeProgress=1-Math.exp(-Math.LN2*t/half);
+  const doseDrive=exog/(exog+250);
+  const suppressed=maxSupp*timeProgress*doseDrive;
+  return initial*(1-suppressed);
+}
+
+function e2At(total,body){
+  const base=Math.max(0,readNum("e2Base"));
+  const rate=Math.max(0,readNum("aromRate"));
+  return base + Math.max(0,total)*rate*body.aromFactor;
 }
 
 function simulate(){
-  const prep = currentPrep();
-  const dose = Math.max(0, readNum("dose"));
-  const interval = Math.max(0.25, readNum("interval"));
-  const days = Math.max(14, readNum("days"));
-  const step = Math.max(0.05, Number($("step").value));
-  const naturalStart = Math.max(0, readNum("naturalT"));
-  const personalScale = Math.max(0, readNum("personalScale"));
-  const e2Base = Math.max(0, readNum("e2Base"));
-  const aromRate = Math.max(0, readNum("aromRate"));
-  const body = bodyStats();
-  const injections = injectionDays(days, interval);
-  const points = [];
-  const n = Math.round(days / step);
+  const p=prep();
+  const dose=Math.max(0,readNum("dose"));
+  const interval=Math.max(0.25,readNum("interval"));
+  const days=Math.max(14,readNum("days"));
+  const step=Math.max(0.05,Number($("step").value));
+  const body=bodyStats();
+  const naturalStart=Math.max(0,readNum("naturalT"));
+  const personal=Math.max(0.2,readNum("personalScale"));
+  const isNebido=$("prep").value==="nebido";
+  const loading=isNebido && $("nebidoLoading").checked;
+  const injections=injectionDays(days,interval,loading);
+  const scale=computeScaleForPrep()*personal;
+  const pts=makeSeries(days,step,dose,injections,scale,body.volumeFactor,esters);
 
-  for(let i=0; i<=n; i++){
-    const x = Number((i * step).toFixed(4));
-    const exog = exogenousAt(x, dose, injections, personalScale, body.volumeFactor);
-    const nat = naturalAt(x, exog, naturalStart);
-    const total = exog + nat;
-    const e2 = e2At(total, body, e2Base, aromRate);
-    points.push({ x, exog, nat, total, e2 });
-  }
-  return { prep, dose, interval, days, step, injections, points, body };
+  const points=pts.map(pnt=>{
+    const nat=naturalAt(pnt.x,pnt.exog,naturalStart);
+    const total=pnt.exog+nat;
+    const e2=e2At(total,body);
+    return {...pnt,nat,total,e2};
+  });
+  return {p,dose,interval,days,step,body,injections,scale,points,loading};
 }
 
-function recalc(){
-  updatePrepHintOnly();
-  const data = simulate();
-  lastData = data;
-  drawT(data);
-  drawE2(data);
-  updateMetrics(data);
+function updateUI(data){
+  $("prepHint").textContent=data.p.hint + " " + data.p.reference;
+  $("nebidoBox").style.display = $("prep").value==="nebido" ? "flex" : "none";
+  const info=mgInfo(data.dose);
+  $("mgEster").textContent=`${fmt(info.mgEster,0)} mg`;
+  $("mgBase").textContent=`${fmt(info.mgBase,0)} mg`;
+  $("mgWeek").textContent=`${fmt(info.mgEster*7/data.interval,0)} mg`;
+  $("bmiOut").textContent=fmt(data.body.bmi,1);
+  $("leanOut").textContent=`${fmt(data.body.lean,1)} kg`;
+  $("aromOut").textContent=`x${fmt(data.body.aromFactor,2)}`;
+
+  const lastStart=Math.max(0,data.days-data.interval);
+  const last=data.points.filter(p=>p.x>=lastStart-1e-9);
+  const last30=data.points.filter(p=>p.x>=Math.max(0,data.days-30)-1e-9);
+  const vals=last.map(p=>p.total);
+  const cmax=Math.max(...vals);
+  const cmin=Math.min(...vals);
+  const avg30=last30.reduce((s,p)=>s+p.total,0)/Math.max(1,last30.length);
+  const e2avg=last30.reduce((s,p)=>s+p.e2,0)/Math.max(1,last30.length);
+  const natEnd=data.points[data.points.length-1]?.nat ?? 0;
+
+  $("mCmax").textContent=fmt(cmax,0);
+  $("mCmin").textContent=fmt(cmin,0);
+  $("mAvg").textContent=fmt(avg30,0);
+  $("mNat").textContent=fmt(natEnd,0);
+  $("mE2").textContent=fmt(e2avg,1);
+  $("mSwing").textContent=fmt(cmax-cmin,0);
+
+  $("heroPrep").textContent=data.p.short;
+  $("heroDose").textContent=`${fmt(data.dose,2)} ml / ${fmt(data.interval,1)} d`;
+  $("heroPeak").textContent=fmt(cmax,0);
+  $("heroTrough").textContent=fmt(cmin,0);
+  $("chartSubtitle").textContent=`${data.p.label}: ${fmt(data.dose,2)} ml co ${fmt(data.interval,1)} dni${data.loading ? " z dawką nasycającą po 6 tygodniach" : ""}.`;
 }
 
-function updateMetrics(data){
-  const dose = data.dose;
-  const info = mgInfo(dose);
-  $("mgPerShot").textContent = `${fmt(info.mgEster,0)} mg`;
-  $("mgBasePerShot").textContent = `${fmt(info.mgBase,0)} mg`;
-  $("mgWeek").textContent = `${fmt(info.mgEster * 7 / data.interval,0)} mg`;
-  $("bmiOut").textContent = fmt(data.body.bmi,1);
-  $("leanOut").textContent = `${fmt(data.body.lean,1)} kg`;
-  $("aromOut").textContent = `x${fmt(data.body.fatFactor,2)}`;
-  $("doseInfo").textContent = `${data.prep.label}: ${fmt(data.dose,2)} ml co ${fmt(data.interval,1)} dni`;
-
-  const lastStart = Math.max(0, data.days - data.interval);
-  const last = data.points.filter(p => p.x >= lastStart - 1e-9);
-  const last30 = data.points.filter(p => p.x >= Math.max(0, data.days - 30) - 1e-9);
-  const totals = last.map(p => p.total);
-  const cmax = Math.max(...totals);
-  const cmin = Math.min(...totals);
-  const avg30 = last30.reduce((a,p)=>a+p.total,0)/Math.max(1,last30.length);
-  const e2avg30 = last30.reduce((a,p)=>a+p.e2,0)/Math.max(1,last30.length);
-  const endNat = data.points[data.points.length-1]?.nat ?? 0;
-
-  $("mCmax").textContent = fmt(cmax,0);
-  $("mCmin").textContent = fmt(cmin,0);
-  $("mAvg").textContent = fmt(avg30,0);
-  $("mNat").textContent = fmt(endNat,0);
-  $("mE2").textContent = fmt(e2avg30,1);
-  $("mSwing").textContent = fmt(cmax-cmin,0);
-}
-
-function drawBase(canvas, yMax, yLabel, xMax){
-  const ctx = canvas.getContext("2d");
-  const W = canvas.width, H = canvas.height;
+function canvasEnv(canvas,yMax,yLabel,xMax,title){
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width,H=canvas.height;
   ctx.clearRect(0,0,W,H);
-  const pad = { l:70, r:28, t:24, b:52 };
-  const plotW = W - pad.l - pad.r;
-  const plotH = H - pad.t - pad.b;
+  const pad={l:72,r:28,t:34,b:54};
+  const plotW=W-pad.l-pad.r, plotH=H-pad.t-pad.b;
 
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle="#fff";
   ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle = "#e5e5ea";
-  ctx.lineWidth = 1;
-  ctx.fillStyle = "#6e6e73";
-  ctx.font = "13px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
 
-  const yTicks = 5;
+  ctx.strokeStyle="#e5e7eb";
+  ctx.lineWidth=1;
+  ctx.fillStyle="#6b7280";
+  ctx.font="13px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
+  const yTicks=6;
   for(let i=0;i<=yTicks;i++){
-    const y = yMax * i / yTicks;
-    const py = pad.t + plotH - (y / yMax) * plotH;
+    const y=yMax*i/yTicks;
+    const py=pad.t+plotH-(y/yMax)*plotH;
     ctx.beginPath(); ctx.moveTo(pad.l,py); ctx.lineTo(W-pad.r,py); ctx.stroke();
-    ctx.fillText(fmt(y,0), 14, py+4);
+    ctx.fillText(fmt(y,0),16,py+4);
   }
-  const xStep = xMax <= 80 ? 7 : xMax <= 180 ? 14 : xMax <= 420 ? 30 : 60;
+  const xStep=xMax<=80?7:xMax<=180?14:xMax<=430?30:60;
   for(let x=0;x<=xMax+1e-9;x+=xStep){
-    const px = pad.l + (x/xMax)*plotW;
+    const px=pad.l+(x/xMax)*plotW;
     ctx.beginPath(); ctx.moveTo(px,pad.t); ctx.lineTo(px,H-pad.b); ctx.stroke();
-    ctx.fillText(fmt(x,0), px-8, H-22);
+    ctx.fillText(fmt(x,0),px-8,H-22);
   }
-  ctx.fillStyle = "#3a3a3c";
-  ctx.font = "14px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
-  ctx.fillText("dni", W-pad.r-22, H-8);
+  ctx.strokeStyle="#cbd5e1";
+  ctx.lineWidth=1.2;
+  ctx.strokeRect(pad.l,pad.t,plotW,plotH);
+
+  ctx.fillStyle="#111827";
+  ctx.font="700 15px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
+  ctx.fillText(title,pad.l+8,22);
+
+  ctx.fillStyle="#374151";
+  ctx.font="14px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
+  ctx.fillText("dni",W-pad.r-22,H-8);
   ctx.save();
-  ctx.translate(20, pad.t+130);
+  ctx.translate(21,pad.t+140);
   ctx.rotate(-Math.PI/2);
-  ctx.fillText(yLabel, 0, 0);
+  ctx.fillText(yLabel,0,0);
   ctx.restore();
-  ctx.strokeStyle = "#c7c7cc";
-  ctx.lineWidth = 1.2;
-  ctx.strokeRect(pad.l, pad.t, plotW, plotH);
-  return { ctx, W, H, pad, plotW, plotH, xToPx:x=>pad.l+(x/xMax)*plotW, yToPx:y=>pad.t+plotH-(y/yMax)*plotH };
+
+  return {
+    ctx,W,H,pad,plotW,plotH,
+    xToPx:x=>pad.l+(x/xMax)*plotW,
+    yToPx:y=>pad.t+plotH-(y/yMax)*plotH
+  };
 }
 
-function drawLine(env, points, accessor, color, width=3){
-  const { ctx, xToPx, yToPx } = env;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
+function drawLine(env,points,fn,color,width=3){
+  const {ctx,xToPx,yToPx}=env;
+  ctx.strokeStyle=color;
+  ctx.lineWidth=width;
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
   ctx.beginPath();
   points.forEach((p,i)=>{
-    const px = xToPx(p.x);
-    const py = yToPx(accessor(p));
-    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    const x=xToPx(p.x), y=yToPx(fn(p));
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
   });
   ctx.stroke();
 }
 
-function drawInjections(env, injections){
-  const { ctx, pad, H, xToPx } = env;
+function drawInjections(env,injections){
+  const {ctx,xToPx,pad,H}=env;
   ctx.save();
-  ctx.strokeStyle = "#8e8e93";
-  ctx.globalAlpha = .28;
-  ctx.lineWidth = 1;
+  ctx.strokeStyle="#94a3b8";
+  ctx.globalAlpha=.35;
+  ctx.lineWidth=1;
   injections.forEach(d=>{
-    const px = xToPx(d);
-    ctx.beginPath(); ctx.moveTo(px,pad.t); ctx.lineTo(px,H-pad.b); ctx.stroke();
+    const x=xToPx(d);
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,H-pad.b); ctx.stroke();
   });
   ctx.restore();
 }
 
-function drawT(data){
-  const canvas = $("chartT");
-  const maxRaw = Math.max(100, ...data.points.map(p=>p.total), ...data.points.map(p=>p.exog));
-  const yMax = Math.ceil(maxRaw / 100) * 100;
-  const env = drawBase(canvas, yMax, "testosteron całkowity, ng/dl", data.days);
-  drawInjections(env, data.injections);
-  drawLine(env, data.points, p=>p.exog, "#0a84ff", 2.8);
-  drawLine(env, data.points, p=>p.nat, "#30d158", 2.4);
-  drawLine(env, data.points, p=>p.total, "#111111", 3.2);
+function drawCharts(data){
+  const maxT=Math.max(100,...data.points.map(p=>p.total),...data.points.map(p=>p.exog),...data.points.map(p=>p.nat));
+  const yMaxT=Math.ceil(maxT/250)*250;
+  const envT=canvasEnv($("chartT"),yMaxT,"testosteron całkowity, ng/dl",data.days,"Testosteron");
+  drawInjections(envT,data.injections);
+  drawLine(envT,data.points,p=>p.exog,"#2563eb",2.8);
+  drawLine(envT,data.points,p=>p.nat,"#16a34a",2.4);
+  drawLine(envT,data.points,p=>p.total,"#111827",3.4);
+
+  const maxE=Math.max(20,...data.points.map(p=>p.e2));
+  const yMaxE=Math.ceil(maxE/10)*10;
+  const envE=canvasEnv($("chartE2"),yMaxE,"indeks E2, pg/ml",data.days,"Indeks aromatyzacji / E2");
+  drawInjections(envE,data.injections);
+  drawLine(envE,data.points,p=>p.e2,"#7c3aed",3);
 }
 
-function drawE2(data){
-  const canvas = $("chartE2");
-  const maxRaw = Math.max(20, ...data.points.map(p=>p.e2));
-  const yMax = Math.ceil(maxRaw / 10) * 10;
-  const env = drawBase(canvas, yMax, "indeks E2, pg/ml", data.days);
-  drawInjections(env, data.injections);
-  drawLine(env, data.points, p=>p.e2, "#7d5fff", 3);
-  const ctx = env.ctx;
-  ctx.fillStyle = "#3a3a3c";
-  ctx.font = "15px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
-  ctx.fillText("Szacunkowy indeks aromatyzacji / estradiolu", env.pad.l + 8, 20);
+function recalc(){
+  const data=simulate();
+  lastData=data;
+  updateUI(data);
+  drawCharts(data);
 }
 
 function exportCSV(){
   if(!lastData) recalc();
-  const rows = [["dzien","testosteron_calkowity_ng_dl","egzogenny_ng_dl","naturalny_po_supresji_ng_dl","indeks_e2_pg_ml"]];
-  for(const p of lastData.points){
-    rows.push([p.x, p.total, p.exog, p.nat, p.e2].map(v => typeof v === "number" ? v.toFixed(2).replace(".", ",") : v).join(";"));
-  }
-  const csv = rows.map(r => Array.isArray(r) ? r.join(";") : r).join("\n");
-  const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "trt_plotter_v2.csv";
+  const rows=[["dzien","testosteron_calkowity_ng_dl","testosteron_egzogenny_ng_dl","testosteron_naturalny_po_supresji_ng_dl","indeks_e2_pg_ml"]];
+  lastData.points.forEach(p=>{
+    rows.push([p.x,p.total,p.exog,p.nat,p.e2].map(v=>String(Number(v).toFixed(2)).replace(".",",")));
+  });
+  const csv=rows.map(r=>r.join(";")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="trt_plotter_v3.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function exportPNG(){
-  const canvas = $("chartT");
-  const a = document.createElement("a");
-  a.href = canvas.toDataURL("image/png");
-  a.download = "trt_plotter_testosteron.png";
+  const a=document.createElement("a");
+  a.href=$("chartT").toDataURL("image/png");
+  a.download="trt_plotter_v3_testosteron.png";
   a.click();
 }
 
 function resetAll(){
-  $("prep").value = "omnadren";
-  $("weight").value = 88;
-  $("height").value = 178;
-  $("bodyFat").value = 22;
-  $("naturalT").value = 350;
-  $("maxSupp").value = 95;
-  $("suppHalf").value = 14;
-  $("e2Base").value = 12;
-  $("aromRate").value = 0.025;
-  $("suppOn").checked = true;
+  $("prep").value="omnadren";
+  $("weight").value=88;
+  $("height").value=178;
+  $("bodyFat").value=22;
+  $("naturalT").value=350;
+  $("maxSupp").value=95;
+  $("suppHalf").value=14;
+  $("personalScale").value=1;
+  $("e2Base").value=12;
+  $("aromRate").value=0.025;
+  $("suppOn").checked=true;
+  $("nebidoLoading").checked=true;
   applyPreset();
 }
 
-["prep","dose","interval","days","step","weight","height","bodyFat","naturalT","maxSupp","suppHalf","personalScale","e2Base","aromRate","suppOn"].forEach(id=>{
-  $(id).addEventListener("input", recalc);
-  $(id).addEventListener("change", () => {
-    if(id === "prep") applyPreset();
-    else recalc();
-  });
+["dose","interval","days","step","weight","height","bodyFat","naturalT","maxSupp","suppHalf","personalScale","e2Base","aromRate","suppOn","nebidoLoading"].forEach(id=>{
+  $(id).addEventListener("input",recalc);
+  $(id).addEventListener("change",recalc);
 });
-
-$("calcBtn").addEventListener("click", recalc);
-$("presetBtn").addEventListener("click", applyPreset);
-$("csvBtn").addEventListener("click", exportCSV);
-$("pngBtn").addEventListener("click", exportPNG);
-$("resetBtn").addEventListener("click", resetAll);
+$("prep").addEventListener("change",applyPreset);
+$("calcBtn").addEventListener("click",recalc);
+$("presetBtn").addEventListener("click",applyPreset);
+$("csvBtn").addEventListener("click",exportCSV);
+$("pngBtn").addEventListener("click",exportPNG);
+$("resetBtn").addEventListener("click",resetAll);
 
 applyPreset();
 </script>

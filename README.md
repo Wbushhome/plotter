@@ -1,6 +1,6 @@
-# TRT Plotter v2
+# TRT Plotter v3
 
-Statyczna aplikacja HTML do orientacyjnego rysowania stężenia testosteronu po iniekcjach.
+Elegancki statyczny ploter HTML do orientacyjnej symulacji stężenia testosteronu całkowitego po iniekcjach.
 
 ## Preparaty
 
@@ -8,20 +8,19 @@ Statyczna aplikacja HTML do orientacyjnego rysowania stężenia testosteronu po 
 - Nebido 1000 mg/4 ml
 - Testosteronum Prolongatum Jelfa 100 mg/ml
 
-## Co dodano w v2
+## Zmiany w v3
 
-- naturalny testosteron startowy
-- stopniową supresję własnej produkcji
-- masę ciała
-- wzrost i BMI
-- poziom tkanki tłuszczowej
-- szacunkowy indeks aromatyzacji / estradiolu
-- wybór preparatu
-- edytowalne estry, równoważniki, półokresy i Tmax
+- poprawiony układ pól, bez rozjeżdżających się okien
+- nowy wygląd strony
+- kalibracja modelu do danych farmakokinetycznych
+- osobne modelowanie wkładu egzogennego, produkcji własnej i testosteronu całkowitego
+- supresja produkcji własnej
+- masa, wzrost, BMI i tkanka tłuszczowa
+- indeks aromatyzacji / E2
+- dla Nebido opcjonalna dawka nasycająca po 6 tygodniach
 - eksport CSV
-- zapis wykresu testosteronu jako PNG
+- zapis wykresu PNG
 
 ## Ważne
 
-To jest model poglądowy. Nie służy do ustalania dawkowania ani prowadzenia leczenia.
-Wartości należy kalibrować na podstawie realnych badań wykonanych w znanym dniu po iniekcji.
+Model jest poglądowy i edukacyjny. Nie służy do ustalania dawkowania ani prowadzenia leczenia.
