@@ -1,32 +1,27 @@
-# Omnadren Plotter
+# TRT Plotter v2
 
-Prosty statyczny ploter HTML do orientacyjnego rysowania stężenia testosteronu całkowitego po iniekcjach Omnadrenu 250.
+Statyczna aplikacja HTML do orientacyjnego rysowania stężenia testosteronu po iniekcjach.
 
-## Jak użyć
+## Preparaty
 
-1. Wrzuć plik `index.html` do repozytorium GitHub.
-2. Włącz GitHub Pages dla repozytorium.
-3. Otwórz stronę w przeglądarce.
-4. Wpisz dawkę w ml, interwał iniekcji i długość symulacji.
+- Omnadren 250
+- Nebido 1000 mg/4 ml
+- Testosteronum Prolongatum Jelfa 100 mg/ml
 
-## Założenia modelu
+## Co dodano w v2
 
-Omnadren 250 według ChPL zawiera w 1 ml:
-- 30 mg testosteronu propionianu
-- 60 mg testosteronu fenylopropionianu
-- 60 mg testosteronu izokapronianu
-- 100 mg testosteronu dekanonianu
-
-Model jest poglądowy. Nie służy do ustalania dawkowania ani leczenia.
-Pole „Skala: ng/dl za 1 mg” służy do kalibracji wykresu pod własne wyniki badań laboratoryjnych.
-
-## Funkcje
-
-- dawka w ml
-- interwał iniekcji
-- długość symulacji
-- stężenie bazowe
-- edytowalne półokresy estrów
-- porównanie ze schematem B
+- naturalny testosteron startowy
+- stopniową supresję własnej produkcji
+- masę ciała
+- wzrost i BMI
+- poziom tkanki tłuszczowej
+- szacunkowy indeks aromatyzacji / estradiolu
+- wybór preparatu
+- edytowalne estry, równoważniki, półokresy i Tmax
 - eksport CSV
-- zapis wykresu PNG
+- zapis wykresu testosteronu jako PNG
+
+## Ważne
+
+To jest model poglądowy. Nie służy do ustalania dawkowania ani prowadzenia leczenia.
+Wartości należy kalibrować na podstawie realnych badań wykonanych w znanym dniu po iniekcji.
