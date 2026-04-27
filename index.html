@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TRT Plotter v4 | testosteron, estradiol, anastrozol</title>
+  <title>TRT Plotter v5 | testosteron, estradiol, anastrozol</title>
   <style>
     :root{
       --bg:#eef1f6;
@@ -355,9 +355,9 @@
   <section class="hero">
     <div class="hero-grid">
       <div>
-        <h1>TRT Plotter v4</h1>
+        <h1>TRT Plotter v5</h1>
         <p class="lead">
-          Ploter stężenia testosteronu całkowitego, estradiolu oraz wpływu anastrozolu. Model testosteronu jest skalibrowany do danych farmakokinetycznych dla mieszaniny estrów, Nebido i enantanu, a moduł AI uwzględnia kumulację anastrozolu, okres półtrwania i empiryczne hamowanie estradiolu.
+          Ploter stężenia testosteronu całkowitego, estradiolu oraz wpływu anastrozolu. Wersja v5 poprawia kalibrację: Cmax z badań jest traktowany jako testosteron całkowity, a nie jako sam wkład egzogenny. Dzięki temu wykres nie zawyża szczytów przez podwójne doliczanie naturalnego testosteronu.
         </p>
       </div>
       <div class="hero-panel">
@@ -460,8 +460,13 @@
         </div>
         <div class="fields two" style="margin-top:10px">
           <div class="field"><label for="suppHalf">Czas do 50% supresji, dni</label><input id="suppHalf" type="number" min="1" step="1" value="14"></div>
-          <div class="field"><label for="personalScale">Odpowiedź osobnicza</label><input id="personalScale" type="number" min="0.2" step="0.05" value="1"></div>
+          <div class="field"><label for="recoveryHalf">Czas 50% odbicia osi, dni</label><input id="recoveryHalf" type="number" min="7" step="1" value="45"></div>
         </div>
+        <div class="fields two" style="margin-top:10px">
+          <div class="field"><label for="personalScale">Odpowiedź osobnicza</label><input id="personalScale" type="number" min="0.2" step="0.05" value="1"></div>
+          <div class="field"><label for="calibCmaxNmol">Cmax kalibracyjny Omnadren, nmol/l</label><input id="calibCmaxNmol" type="number" min="20" step="1" value="70"></div>
+        </div>
+        <div class="hint">Cmax kalibracyjny dotyczy 1 ml mieszanki estrów. Dane dla Sustanon 250 podają około 70 nmol/l jako testosteron całkowity, dlatego v5 nie dodaje do tego pełnego naturalnego T.</div>
         <div class="check">
           <input id="suppOn" type="checkbox" checked>
           <label for="suppOn">Uwzględnij hamowanie produkcji własnej testosteronu.</label>
@@ -567,7 +572,7 @@
       </div>
 
       <div class="info-box">
-        <strong>Jak czytać wykres:</strong> czarna linia to testosteron całkowity, czyli suma wkładu z leku i pozostałej produkcji własnej. Niebieska linia pokazuje sam wkład egzogenny, zielona produkcję własną po supresji. Na dolnym wykresie pomarańczowa linia pokazuje szacunkowe E2 bez inhibitora, a fioletowa E2 po uwzględnieniu anastrozolu.
+        <strong>Jak czytać wykres:</strong> czarna linia to testosteron całkowity, czyli suma wkładu z leku i pozostałej produkcji własnej. W v5 Cmax z badań jest traktowany jako wartość całkowita, więc model nie dolicza już pełnego naturalnego testosteronu ponad punkt referencyjny. Niebieska linia pokazuje sam wkład egzogenny, zielona produkcję własną po supresji. Na dolnym wykresie pomarańczowa linia pokazuje szacunkowe E2 bez inhibitora, a fioletowa E2 po uwzględnieniu anastrozolu.
       </div>
 
       <div class="ref-grid">
@@ -590,7 +595,7 @@ const PREPS = {
     label:"Omnadren 250",
     hint:"1 ml zawiera 250 mg estrów, co odpowiada około 176 mg testosteronu. Profil kalibrowany do danych dla mieszaniny estrów typu Sustanon/Omnadren.",
     defaultDose:1, defaultInterval:14, defaultDays:140,
-    reference:"Cmax ok. 70 nmol/l po 24–48 h; powrót do dolnej granicy normy ok. 21 dnia.",
+    reference:"Cmax ok. 70 nmol/l po 24–48 h dla mieszaniny typu Sustanon; Omnadren ChPL podaje Cmax 24–48 h i powrót do wartości wyjściowych po ok. 21 dniach.",
     calibType:"single_cmax",
     calibDose:1,
     calibTarget:70 * NMOL_TO_NGDL,
@@ -717,14 +722,33 @@ function injectionDays(days, interval, withNebidoLoading=false){
   return arr;
 }
 
+function solveKaForTmax(ke,tmax){
+  // Dla modelu Batemana: tmax = ln(ka/ke)/(ka-ke).
+  // Szukamy ka > ke metodą bisekcji, żeby krzywa nie robiła pionowych skoków.
+  let lo = ke * 1.001;
+  let hi = Math.max(ke * 2, 10);
+  const f = (ka) => Math.log(ka/ke)/(ka-ke);
+  for(let i=0;i<80;i++){
+    if(f(hi) < tmax) break;
+    hi *= 2;
+  }
+  for(let i=0;i<80;i++){
+    const mid=(lo+hi)/2;
+    if(f(mid) > tmax) lo=mid; else hi=mid;
+  }
+  return (lo+hi)/2;
+}
+
 function releaseShape(age,e){
   if(age<0) return 0;
-  const tmax=Math.max(0.05,e.tmax || 0.05);
-  const riseTau=Math.max(0.05,tmax/2.2);
-  const rise=1-Math.exp(-age/riseTau);
-  const decayAge=Math.max(0,age-tmax);
-  const decay=Math.exp(-Math.LN2*decayAge/Math.max(0.1,e.half));
-  return rise*decay;
+  const half=Math.max(0.1,e.half);
+  const ke=Math.LN2/half;
+  const tmax=Math.max(0.1,e.tmax || 1);
+  const ka=solveKaForTmax(ke,tmax);
+  const raw=(Math.exp(-ke*age)-Math.exp(-ka*age));
+  const peakAge=Math.log(ka/ke)/(ka-ke);
+  const peak=(Math.exp(-ke*peakAge)-Math.exp(-ka*peakAge));
+  return Math.max(0, raw/Math.max(peak,0.000001));
 }
 
 function unscaledAt(t,dose,injections,estersSet=esters){
@@ -751,16 +775,28 @@ function makeSeries(days,step,dose,injections,scale,volumeFactor,estersSet=ester
 }
 
 function computeScaleForPrep(){
-  const key=$("prep").value + JSON.stringify(esters);
-  if(calibCache[key]) return calibCache[key];
   const p=prep();
+  // Ważna poprawka v5:
+  // Jeżeli źródło podaje Cmax testosteronu całkowitego, to nie wolno traktować tej wartości
+  // jako samego wkładu egzogennego i później dodawać do niej naturalnego testosteronu.
+  // Dlatego dla Omnadren/Sustanon odejmujemy naturalny testosteron startowy od celu kalibracji.
+  const naturalStart=Math.max(0,readNum("naturalT"));
+  const weight=Math.max(35,readNum("weight"));
+  const cmaxNmol=Math.max(20,readNum("calibCmaxNmol") || 70);
+  const key=$("prep").value + JSON.stringify(esters) + "|nat=" + naturalStart + "|cmax=" + cmaxNmol + "|w=" + weight;
+  if(calibCache[key]) return calibCache[key];
+
   let scale=3.6;
 
   if(p.calibType==="single_cmax"){
     const inj=[0];
-    const pts=makeSeries(35,0.1,p.calibDose,inj,1,1,esters);
-    const max=Math.max(...pts.map(p=>p.exog));
-    scale=p.calibTarget / Math.max(max,0.0001);
+    const pts=makeSeries(35,0.05,p.calibDose,inj,1,1,esters);
+    const maxExogUnit=Math.max(...pts.map(p=>p.exog));
+    const targetTotal=cmaxNmol * NMOL_TO_NGDL;
+    // Nie schodzimy niżej niż 65% wartości referencyjnej, żeby bardzo wysoki naturalny T
+    // nie wyzerował sztucznie wkładu z preparatu.
+    const targetExog=Math.max(targetTotal - naturalStart, targetTotal * 0.65);
+    scale=targetExog / Math.max(maxExogUnit,0.0001);
   }
 
   if(p.calibType==="steady_avg"){
@@ -783,16 +819,19 @@ function computeScaleForPrep(){
   return scale;
 }
 
-function naturalAt(t,exog,initial){
-  if(!$("suppOn").checked) return initial;
-  if(initial<=0) return 0;
+function suppressionUpdate(prevSupp, dt, exog){
+  if(!$("suppOn").checked) return 0;
   const maxSupp=clamp(readNum("maxSupp")/100,0,1);
-  const half=Math.max(1,readNum("suppHalf"));
-  const timeProgress=1-Math.exp(-Math.LN2*t/half);
-  const doseDrive=exog/(exog+250);
-  const suppressed=maxSupp*timeProgress*doseDrive;
-  return initial*(1-suppressed);
+  const suppHalf=Math.max(1,readNum("suppHalf"));
+  const recoveryHalf=Math.max(7,readNum("recoveryHalf"));
+  // ED50 opisuje, przy jakim wkładzie egzogennym oś HPTA jest już mocno hamowana.
+  const target=maxSupp * (exog/(exog+220));
+  const half = target > prevSupp ? suppHalf : recoveryHalf;
+  const tau=half/Math.LN2;
+  const alpha=1-Math.exp(-Math.max(0,dt)/tau);
+  return clamp(prevSupp + (target-prevSupp)*alpha,0,1);
 }
+function naturalAt(t,exog,initial){ return initial; }
 
 function e2RawAt(total,body){
   const base=Math.max(0,readNum("e2Base"));
@@ -878,15 +917,20 @@ function simulate(){
   const aiDose=Math.max(0,readNum("aiDose"));
   const aiRef=aiReferenceExposure();
 
-  const points=pts.map(pnt=>{
-    const nat=naturalAt(pnt.x,pnt.exog,naturalStart);
+  let suppression=0;
+  let prevX=0;
+
+  const points=pts.map((pnt,idx)=>{
+    const dt = idx === 0 ? 0 : pnt.x - prevX;
+    prevX = pnt.x;
+    suppression = suppressionUpdate(suppression, dt, pnt.exog);
+    const nat = $("suppOn").checked ? naturalStart * (1 - suppression) : naturalStart;
     const total=pnt.exog+nat;
     const e2=e2AfterAI(total,body,pnt.x,aiDays,aiDose,aiRef);
-    return {...pnt,nat,total,e2Raw:e2.raw,e2:e2.final,aiExposure:e2.aiExposure,aiSupp:e2.aiSupp};
+    return {...pnt,nat,total,e2Raw:e2.raw,e2:e2.final,aiExposure:e2.aiExposure,aiSupp:e2.aiSupp,suppression};
   });
   return {p,dose,interval,days,step,body,injections,scale,points,loading,aiDays,aiDose,aiRef};
 }
-
 function updateUI(data){
   $("prepHint").textContent=data.p.hint + " " + data.p.reference;
   $("nebidoBox").style.display = $("prep").value==="nebido" ? "flex" : "none";
@@ -934,7 +978,7 @@ function canvasEnv(canvas,yMax,yLabel,xMax,title){
   const ctx=canvas.getContext("2d");
   const W=canvas.width,H=canvas.height;
   ctx.clearRect(0,0,W,H);
-  const pad={l:72,r:28,t:34,b:54};
+  const pad={l:92,r:28,t:34,b:54};
   const plotW=W-pad.l-pad.r, plotH=H-pad.t-pad.b;
 
   ctx.fillStyle="#fff";
@@ -949,7 +993,7 @@ function canvasEnv(canvas,yMax,yLabel,xMax,title){
     const y=yMax*i/yTicks;
     const py=pad.t+plotH-(y/yMax)*plotH;
     ctx.beginPath(); ctx.moveTo(pad.l,py); ctx.lineTo(W-pad.r,py); ctx.stroke();
-    ctx.fillText(fmt(y,0),16,py+4);
+    ctx.fillText(fmt(y,0),22,py+4);
   }
   const xStep=xMax<=80?7:xMax<=180?14:xMax<=430?30:60;
   for(let x=0;x<=xMax+1e-9;x+=xStep){
@@ -969,7 +1013,7 @@ function canvasEnv(canvas,yMax,yLabel,xMax,title){
   ctx.font="14px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
   ctx.fillText("dni",W-pad.r-22,H-8);
   ctx.save();
-  ctx.translate(21,pad.t+140);
+  ctx.translate(28,pad.t+140);
   ctx.rotate(-Math.PI/2);
   ctx.fillText(yLabel,0,0);
   ctx.restore();
@@ -1043,7 +1087,7 @@ function exportCSV(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url;
-  a.download="trt_plotter_v4.csv";
+  a.download="trt_plotter_v5.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -1051,7 +1095,7 @@ function exportCSV(){
 function exportPNG(){
   const a=document.createElement("a");
   a.href=$("chartT").toDataURL("image/png");
-  a.download="trt_plotter_v4_testosteron.png";
+  a.download="trt_plotter_v5_testosteron.png";
   a.click();
 }
 
@@ -1063,6 +1107,8 @@ function resetAll(){
   $("naturalT").value=350;
   $("maxSupp").value=95;
   $("suppHalf").value=14;
+  $("recoveryHalf").value=45;
+  $("calibCmaxNmol").value=70;
   $("personalScale").value=1;
   $("e2Base").value=12;
   $("aromRate").value=0.025;
