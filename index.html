@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Omnadren Plotter | stężenie testosteronu</title>
+  <style>
+    :root{
+      --bg:#f5f5f7;
+      --panel:#ffffffcc;
+      --panel-solid:#fff;
+      --text:#1d1d1f;
+      --muted:#6e6e73;
+      --line:#d2d2d7;
+      --accent:#0a84ff;
+      --accent2:#ff453a;
+      --good:#30d158;
+      --shadow:0 18px 50px rgba(0,0,0,.08);
+      --radius:22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(circle at 15% 5%, #eaf4ff 0, transparent 28%),
+        radial-gradient(circle at 85% 10%, #fff0ee 0, transparent 28%),
+        linear-gradient(180deg,#fbfbfd,var(--bg));
+      min-height:100vh;
+    }
+    .wrap{max-width:1280px;margin:0 auto;padding:28px 18px 42px}
+    header{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-start;
+      margin-bottom:18px;
+    }
+    h1{font-size:clamp(28px,4vw,48px);letter-spacing:-.04em;line-height:1.02;margin:0 0 8px}
+    .lead{margin:0;color:var(--muted);font-size:16px;max-width:820px;line-height:1.45}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      background:rgba(255,255,255,.7);
+      border:1px solid rgba(210,210,215,.75);
+      border-radius:999px;padding:9px 13px;color:#3a3a3c;font-size:13px;
+      box-shadow:0 8px 25px rgba(0,0,0,.04);
+      white-space:nowrap;
+    }
+    .grid{display:grid;grid-template-columns:390px 1fr;gap:18px;align-items:start}
+    .card{
+      background:var(--panel);
+      backdrop-filter: blur(18px);
+      border:1px solid rgba(210,210,215,.72);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .card.pad{padding:18px}
+    .section-title{font-weight:760;font-size:16px;margin:0 0 12px;letter-spacing:-.01em}
+    .controls{display:grid;gap:12px}
+    label{display:block;font-size:13px;color:#3a3a3c;margin-bottom:6px}
+    input,select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:11px 12px;
+      font-size:15px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+    }
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(10,132,255,.12)}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    .hint{font-size:12px;color:var(--muted);line-height:1.35;margin-top:6px}
+    .tabs{display:flex;gap:8px;margin:12px 0}
+    button{
+      appearance:none;border:0;border-radius:14px;
+      padding:11px 14px;font-size:14px;font-weight:650;
+      background:#e8e8ed;color:#1d1d1f;
+      cursor:pointer;transition:.15s ease;
+    }
+    button:hover{transform:translateY(-1px)}
+    button.primary{background:var(--accent);color:#fff}
+    button.danger{background:#ffe9e7;color:#c72118}
+    button.ghost{background:#fff;border:1px solid var(--line)}
+    .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .advanced{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+    details summary{
+      cursor:pointer;
+      list-style:none;
+      font-weight:720;
+      color:#2c2c2e;
+      margin-bottom:10px;
+    }
+    details summary::-webkit-details-marker{display:none}
+    .ester-table{display:grid;gap:9px}
+    .ester-row{
+      display:grid;
+      grid-template-columns:1.1fr .75fr .75fr .75fr;
+      gap:8px;align-items:end;
+      padding:10px;
+      background:#fff;
+      border:1px solid #ececf0;
+      border-radius:16px;
+    }
+    .ester-row strong{font-size:13px;line-height:1.2}
+    .chart-card{padding:16px}
+    .chart-top{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px
+    }
+    .chart-title{font-size:18px;font-weight:800;letter-spacing:-.015em}
+    canvas{
+      width:100%;
+      height:520px;
+      display:block;
+      background:linear-gradient(180deg,#fff,#fbfbfd);
+      border:1px solid #ececf0;
+      border-radius:18px;
+    }
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+    .metric{
+      background:#fff;
+      border:1px solid #ececf0;
+      border-radius:17px;
+      padding:12px;
+      min-height:86px;
+    }
+    .metric .v{font-size:24px;font-weight:840;letter-spacing:-.03em;margin-bottom:4px}
+    .metric .k{font-size:12px;color:var(--muted);line-height:1.25}
+    .note{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      background:#fff;
+      border:1px solid #ececf0;
+      border-radius:16px;
+      padding:12px;
+    }
+    .toggle-line{display:flex;gap:8px;align-items:center;margin-top:10px}
+    .toggle-line input{width:auto}
+    .schemaB{display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+    .schemaB.on{display:block}
+    .legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:13px}
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--accent)}
+    .dot.b{background:var(--accent2)}
+    .dot.inj{background:#8e8e93;border-radius:2px}
+    footer{color:var(--muted);font-size:12px;line-height:1.45;margin-top:16px}
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      .summary{grid-template-columns:repeat(2,1fr)}
+      canvas{height:430px}
+      header{display:block}
+      .badge{margin-top:12px}
+    }
+    @media (max-width: 520px){
+      .row2,.row3{grid-template-columns:1fr}
+      .summary{grid-template-columns:1fr}
+      .ester-row{grid-template-columns:1fr 1fr}
+      .wrap{padding:18px 12px 28px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Omnadren Plotter</h1>
+        <p class="lead">
+          Orientacyjny wykres stężenia testosteronu całkowitego we krwi po iniekcjach Omnadrenu.
+          Wpisujesz dawkę w ml i interwał, a model rysuje przebieg w ng/dl.
+        </p>
+      </div>
+      <div class="badge">model poglądowy, nie kalkulator dawki</div>
+    </header>
+
+    <div class="grid">
+      <aside class="card pad">
+        <p class="section-title">Schemat A</p>
+        <div class="controls">
+          <div class="row2">
+            <div>
+              <label for="doseA">Dawka na iniekcję, ml</label>
+              <input id="doseA" type="number" min="0" step="0.05" value="1">
+            </div>
+            <div>
+              <label for="intervalA">Interwał, dni</label>
+              <input id="intervalA" type="number" min="1" step="0.5" value="14">
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              <label for="days">Długość symulacji, dni</label>
+              <input id="days" type="number" min="14" step="1" value="120">
+            </div>
+            <div>
+              <label for="step">Dokładność, dnia</label>
+              <select id="step">
+                <option value="1">1 dzień</option>
+                <option value="0.5">0,5 dnia</option>
+                <option value="0.25" selected>0,25 dnia</option>
+                <option value="0.1">0,1 dnia</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              <label for="baseline">Stężenie bazowe, ng/dl</label>
+              <input id="baseline" type="number" min="0" step="10" value="0">
+              <div class="hint">Przy silnej supresji osi HPTA często wpisuje się 0. Przy zachowanej produkcji można wpisać własną wartość.</div>
+            </div>
+            <div>
+              <label for="scale">Skala: ng/dl za 1 mg</label>
+              <input id="scale" type="number" min="0" step="0.1" value="3.6">
+              <div class="hint">To kalibracja modelu. Zmieniaj ją, jeśli chcesz dopasować wykres do swoich badań.</div>
+            </div>
+          </div>
+
+          <div class="toggle-line">
+            <input id="showB" type="checkbox">
+            <label for="showB" style="margin:0">Porównaj ze schematem B</label>
+          </div>
+
+          <div id="schemaB" class="schemaB">
+            <p class="section-title">Schemat B</p>
+            <div class="row2">
+              <div>
+                <label for="doseB">Dawka na iniekcję, ml</label>
+                <input id="doseB" type="number" min="0" step="0.05" value="0.5">
+              </div>
+              <div>
+                <label for="intervalB">Interwał, dni</label>
+                <input id="intervalB" type="number" min="1" step="0.5" value="7">
+              </div>
+            </div>
+          </div>
+
+          <details class="advanced">
+            <summary>Założenia estrów i półokresów</summary>
+            <div class="hint" style="margin-bottom:10px">
+              Omnadren 250 ma 250 mg estrów testosteronu w 1 ml. Półokresy są wartościami roboczymi i możesz je zmienić.
+            </div>
+            <div id="esterTable" class="ester-table"></div>
+          </details>
+
+          <div class="btns">
+            <button class="primary" id="calcBtn">Przelicz wykres</button>
+            <button class="ghost" id="csvBtn">Eksport CSV</button>
+            <button class="ghost" id="pngBtn">Zapisz PNG</button>
+            <button class="danger" id="resetBtn">Reset</button>
+          </div>
+        </div>
+
+        <footer>
+          Model sumuje wkład każdego estru jako krzywą wykładniczą po kolejnych iniekcjach.
+          W praktyce wynik zależy od absorpcji z depo, SHBG, masy ciała, hematokrytu, wątroby, miejsca podania i momentu pobrania krwi.
+        </footer>
+      </aside>
+
+      <main class="card chart-card">
+        <div class="chart-top">
+          <div>
+            <div class="chart-title">Szacowane stężenie testosteronu całkowitego</div>
+            <div class="legend">
+              <span><i class="dot"></i> Schemat A</span>
+              <span id="legendB" style="display:none"><i class="dot b"></i> Schemat B</span>
+              <span><i class="dot inj"></i> iniekcje</span>
+            </div>
+          </div>
+          <div class="badge" id="doseInfo">1 ml co 14 dni</div>
+        </div>
+
+        <canvas id="chart" width="1100" height="620"></canvas>
+
+        <div class="summary">
+          <div class="metric"><div class="v" id="mCmax">–</div><div class="k">Cmax w ostatnim interwale</div></div>
+          <div class="metric"><div class="v" id="mCmin">–</div><div class="k">Cmin w ostatnim interwale</div></div>
+          <div class="metric"><div class="v" id="mAvg">–</div><div class="k">Średnia z ostatnich 30 dni</div></div>
+          <div class="metric"><div class="v" id="mSwing">–</div><div class="k">Różnica szczyt/dołek</div></div>
+          <div class="metric"><div class="v" id="mWeekly">–</div><div class="k">Średnia ilość estrów na tydzień</div></div>
+        </div>
+
+        <div class="note">
+          Ważne: ng/dl na wykresie to wynik z kalibracji, nie bezpośredni pomiar.
+          Najlepszy sposób użycia: wpisz własny schemat, porównaj go z wynikiem laboratoryjnym wykonanym w znanym dniu po iniekcji,
+          a potem dostosuj pole „Skala”. Wtedy ploter lepiej pokazuje trend, piki i dołki.
+        </div>
+      </main>
+    </div>
+  </div>
+
+<script>
+const defaults = {
+  esters: [
+    { key:"prop", name:"Propionian", mg:30, eq:0.837, hl:2.0 },
+    { key:"phen", name:"Fenylopropionian", mg:60, eq:0.686, hl:4.5 },
+    { key:"iso",  name:"Izokapronian", mg:60, eq:0.746, hl:9.0 },
+    { key:"dec",  name:"Dekanonian", mg:100, eq:0.673, hl:15.0 }
+  ]
+};
+
+let state = structuredClone(defaults);
+let lastData = null;
+
+const $ = (id) => document.getElementById(id);
+
+function fmt(n, dec=0){
+  if(!Number.isFinite(n)) return "–";
+  return n.toLocaleString("pl-PL", { maximumFractionDigits: dec, minimumFractionDigits: dec });
+}
+
+function buildEsterTable(){
+  const root = $("esterTable");
+  root.innerHTML = "";
+  state.esters.forEach((e, i) => {
+    const row = document.createElement("div");
+    row.className = "ester-row";
+    row.innerHTML = `
+      <div><strong>${e.name}</strong><div class="hint">w 1 ml</div></div>
+      <div><label>mg estru</label><input data-i="${i}" data-k="mg" type="number" step="1" min="0" value="${e.mg}"></div>
+      <div><label>ekwiw.</label><input data-i="${i}" data-k="eq" type="number" step="0.001" min="0" value="${e.eq}"></div>
+      <div><label>t½ dni</label><input data-i="${i}" data-k="hl" type="number" step="0.1" min="0.1" value="${e.hl}"></div>
+    `;
+    root.appendChild(row);
+  });
+
+  root.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", (ev) => {
+      const i = Number(ev.target.dataset.i);
+      const k = ev.target.dataset.k;
+      state.esters[i][k] = Number(ev.target.value);
+      recalc();
+    });
+  });
+}
+
+function readNumber(id){
+  const v = Number($(id).value);
+  return Number.isFinite(v) ? v : 0;
+}
+
+function injectionDays(totalDays, interval){
+  const arr = [];
+  for(let d = 0; d <= totalDays + 1e-9; d += interval) arr.push(Number(d.toFixed(4)));
+  return arr;
+}
+
+function contributionAt(t, doseMl, injections, scale, baseline){
+  let activeMg = 0;
+  for(const inj of injections){
+    if(t < inj) continue;
+    const age = t - inj;
+    for(const e of state.esters){
+      const k = Math.LN2 / Math.max(e.hl, 0.01);
+      const mgBase = doseMl * e.mg * e.eq;
+      activeMg += mgBase * Math.exp(-k * age);
+    }
+  }
+  return baseline + activeMg * scale;
+}
+
+function simulate(doseMl, interval, totalDays, step, scale, baseline){
+  const injections = injectionDays(totalDays, interval);
+  const points = [];
+  const n = Math.round(totalDays / step);
+  for(let i=0; i<=n; i++){
+    const t = Number((i * step).toFixed(4));
+    points.push({ x:t, y: contributionAt(t, doseMl, injections, scale, baseline) });
+  }
+  return { points, injections, doseMl, interval };
+}
+
+function stats(sim, totalDays){
+  const lastStart = Math.max(0, totalDays - sim.interval);
+  const last = sim.points.filter(p => p.x >= lastStart - 1e-9);
+  const last30 = sim.points.filter(p => p.x >= Math.max(0, totalDays - 30) - 1e-9);
+  const ys = last.map(p => p.y);
+  const ys30 = last30.map(p => p.y);
+  const cmax = Math.max(...ys);
+  const cmin = Math.min(...ys);
+  const avg = ys30.reduce((a,b)=>a+b,0) / Math.max(ys30.length,1);
+  const weekly = sim.doseMl * 250 * 7 / sim.interval;
+  return { cmax, cmin, avg, swing:cmax-cmin, weekly };
+}
+
+function recalc(){
+  const doseA = readNumber("doseA");
+  const intervalA = Math.max(0.1, readNumber("intervalA"));
+  const days = Math.max(1, readNumber("days"));
+  const step = Math.max(0.05, Number($("step").value));
+  const baseline = readNumber("baseline");
+  const scale = readNumber("scale");
+  const showB = $("showB").checked;
+
+  const simA = simulate(doseA, intervalA, days, step, scale, baseline);
+  let simB = null;
+  if(showB){
+    simB = simulate(readNumber("doseB"), Math.max(0.1, readNumber("intervalB")), days, step, scale, baseline);
+  }
+
+  lastData = { simA, simB, days, step, baseline, scale };
+  drawChart(lastData);
+
+  const s = stats(simA, days);
+  $("mCmax").textContent = fmt(s.cmax, 0);
+  $("mCmin").textContent = fmt(s.cmin, 0);
+  $("mAvg").textContent = fmt(s.avg, 0);
+  $("mSwing").textContent = fmt(s.swing, 0);
+  $("mWeekly").textContent = `${fmt(s.weekly, 0)} mg`;
+  $("doseInfo").textContent = `${fmt(doseA,2)} ml co ${fmt(intervalA,1)} dni`;
+  $("legendB").style.display = showB ? "inline" : "none";
+}
+
+function drawChart(data){
+  const canvas = $("chart");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const pad = { l:70, r:26, t:26, b:58 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+  const allPoints = data.simB ? data.simA.points.concat(data.simB.points) : data.simA.points;
+  const maxYRaw = Math.max(100, ...allPoints.map(p => p.y));
+  const maxY = Math.ceil(maxYRaw / 100) * 100;
+  const minY = 0;
+  const xMax = data.days;
+
+  const xToPx = x => pad.l + (x / xMax) * plotW;
+  const yToPx = y => pad.t + plotH - ((y - minY) / (maxY - minY)) * plotH;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0,0,W,H);
+
+  ctx.strokeStyle = "#e5e5ea";
+  ctx.lineWidth = 1;
+  ctx.fillStyle = "#6e6e73";
+  ctx.font = "13px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
+
+  const yTicks = 6;
+  for(let i=0; i<=yTicks; i++){
+    const y = minY + (maxY-minY)*i/yTicks;
+    const py = yToPx(y);
+    ctx.beginPath();
+    ctx.moveTo(pad.l, py);
+    ctx.lineTo(W-pad.r, py);
+    ctx.stroke();
+    ctx.fillText(fmt(y,0), 14, py+4);
+  }
+
+  const xStep = data.days <= 60 ? 7 : data.days <= 180 ? 14 : 30;
+  for(let x=0; x<=data.days + 1e-9; x+=xStep){
+    const px = xToPx(x);
+    ctx.beginPath();
+    ctx.moveTo(px, pad.t);
+    ctx.lineTo(px, H-pad.b);
+    ctx.stroke();
+    ctx.fillText(fmt(x,0), px-8, H-25);
+  }
+
+  ctx.fillStyle = "#3a3a3c";
+  ctx.font = "14px -apple-system, BlinkMacSystemFont, Segoe UI, Arial";
+  ctx.fillText("dni", W-pad.r-20, H-8);
+  ctx.save();
+  ctx.translate(20, pad.t+120);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText("testosteron całkowity, ng/dl", 0, 0);
+  ctx.restore();
+
+  function drawInjections(sim, color){
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = .28;
+    ctx.lineWidth = 1;
+    sim.injections.forEach(d => {
+      const px = xToPx(d);
+      ctx.beginPath();
+      ctx.moveTo(px, pad.t);
+      ctx.lineTo(px, H-pad.b);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  drawInjections(data.simA, "#8e8e93");
+
+  function drawLine(points, color, width=3){
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      const px = xToPx(p.x);
+      const py = yToPx(p.y);
+      if(i===0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+  }
+
+  drawLine(data.simA.points, "#0a84ff", 3.2);
+  if(data.simB) drawLine(data.simB.points, "#ff453a", 3.2);
+
+  ctx.strokeStyle = "#c7c7cc";
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(pad.l, pad.t, plotW, plotH);
+}
+
+function exportCSV(){
+  if(!lastData) recalc();
+  const rows = [["dzien","schemat_A_ng_dl","schemat_B_ng_dl"]];
+  const a = lastData.simA.points;
+  const b = lastData.simB ? lastData.simB.points : null;
+  for(let i=0; i<a.length; i++){
+    rows.push([
+      a[i].x.toString().replace(".", ","),
+      a[i].y.toFixed(2).replace(".", ","),
+      b ? b[i].y.toFixed(2).replace(".", ",") : ""
+    ]);
+  }
+  const csv = rows.map(r => r.join(";")).join("\n");
+  const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "omnadren_plotter.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportPNG(){
+  const canvas = $("chart");
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png");
+  link.download = "omnadren_plotter.png";
+  link.click();
+}
+
+function resetAll(){
+  $("doseA").value = 1;
+  $("intervalA").value = 14;
+  $("doseB").value = 0.5;
+  $("intervalB").value = 7;
+  $("days").value = 120;
+  $("step").value = 0.25;
+  $("baseline").value = 0;
+  $("scale").value = 3.6;
+  $("showB").checked = false;
+  $("schemaB").classList.remove("on");
+  state = structuredClone(defaults);
+  buildEsterTable();
+  recalc();
+}
+
+["doseA","intervalA","doseB","intervalB","days","step","baseline","scale"].forEach(id => {
+  $(id).addEventListener("input", recalc);
+  $(id).addEventListener("change", recalc);
+});
+$("showB").addEventListener("change", () => {
+  $("schemaB").classList.toggle("on", $("showB").checked);
+  recalc();
+});
+$("calcBtn").addEventListener("click", recalc);
+$("csvBtn").addEventListener("click", exportCSV);
+$("pngBtn").addEventListener("click", exportPNG);
+$("resetBtn").addEventListener("click", resetAll);
+
+buildEsterTable();
+recalc();
+</script>
+</body>
+</html>
